@@ -4,45 +4,56 @@ namespace Module\User\Model;
 use Pi\Application\Model\Model;
 use Pi;
 
+/**
+ * User system account model
+ *
+ * @author Liu Chuang <liuchuang@eefocus.com>
+ */
 class Account extends Model
 {
+    /**
+     * Prepare insert data to account table
+     *
+     * @param $data
+     * @return \Pi\Db\Table\Row|\Pi\Db\Table\RowGateway
+     */
     public function prepare($data)
     {
         $data['salt'] = $this->createSalt();
-        $data['identity'] = $this->transformCredential($data['identity'], $data['salt']);
+        $data['credential'] = $this->transformCredential($data['credential'], $data['salt']);
         return $this->createRow($data);
     }
 
-
-    public function authenticate($data)
-    {
-        $row = $this->find($data['username'], 'username');
-        if ($row->password == md5($data['password'])) {
-            return $row;
-        }
-
-        return false;
-    }
-
-    public function getList($where, $columns, $order)
-    {
-        $select = $this->select()
-            ->columns($columns)
-            ->where($where)
-            ->order($order);
-        $rowset = $this->selectWith($select);
-
-        return $rowset;
-    }
-
+    /**
+     * Produce salt
+     *
+     * @return string
+     */
     public function createSalt()
     {
         return uniqid(mt_rand(), 1);
     }
 
+    /**
+     * Transform credential
+     *
+     * @param $credential
+     * @param $salt
+     * @return string
+     */
     public function transformCredential($credential, $salt)
     {
         $credential = md5(sprintf('%s%s%s', $salt, $credential, Pi::config('salt')));
         return $credential;
+    }
+
+    /**
+     * Get identity column
+     *
+     * @return string
+     */
+    public function getIdentityColumn()
+    {
+        return 'identity';
     }
 }

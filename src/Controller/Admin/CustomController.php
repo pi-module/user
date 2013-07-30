@@ -58,6 +58,12 @@ class CustomController extends ActionController
         $this->view()->setTemplate('custom-form');
     }
 
+    /**
+     * Get custom form to preview
+     *
+     * @param $configs
+     * @return \Module\User\Form\RegisterForm
+     */
     protected function getForm($configs)
     {
         $form = new RegisterForm($configs);

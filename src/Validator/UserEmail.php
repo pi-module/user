@@ -23,6 +23,11 @@ namespace Module\User\Validator;
 use Pi;
 use Zend\Validator\AbstractValidator;
 
+/**
+ * Validator user email
+ *
+ * @author Liu Chuang <liuchuang@eefocus.com>
+ */
 class UserEmail extends AbstractValidator
 {
     const RESERVED  = 'userEmailReserved';

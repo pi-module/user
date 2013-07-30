@@ -218,8 +218,9 @@ class RegisterController extends ActionController
 //        d($config);
 //        $id = Pi::service('user')->getUser();
 //        d($id);
-        $id = Pi::service('user');
-        d($id);
+        //$id = Pi::service('user');
+//        d($id);
+        d($this->getSmtpOption());
         $this->view()->setTemplate(false);
     }
 }
