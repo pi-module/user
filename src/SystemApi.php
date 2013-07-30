@@ -12,6 +12,7 @@ namespace Module\User;
 use Pi;
 use Module\User\Model\Local as UserModel;
 use Pi\User\Adapter\AbstractAdapter;
+use Module\User\Authentication\Adapter\DbTable;
 
 /**
  * User module api for system
@@ -170,28 +171,32 @@ class SystemApi extends AbstractAdapter
             case 'account':
             case 'profile':
                 $id = $id ?: $this->id;
-                $url = Pi::service('url')->assemble('user', array(
+                $url = Pi::service('url')->assemble('default', array(
+                    'module'     => 'user',
                     'controller'    => 'profile',
                     'id'            => $id,
                 ));
                 break;
             case 'login':
             case 'signin':
-                $url = Pi::service('url')->assemble('user', array(
+                $url = Pi::service('url')->assemble('default', array(
+                    'module'        => 'user',
                     'controller'    => 'login'
                 ));
                 break;
             case 'logout':
-            case 'signout':
-                $url = Pi::service('url')->assemble('user', array(
-                    'controller'    => 'login',
-                    'action'        => 'logout',
+                $url = Pi::service('url')->assemble('default', array(
+                    'module'     => 'user',
+                    'controller' => 'login',
+                    'action'     => 'logout',
                 ));
                 break;
             case 'register':
             case 'signup':
-                $url = Pi::service('url')->assemble('user', array(
-                    'controller'    => 'register',
+                $url = Pi::service('url')->assemble('default', array(
+                    'module'     => 'user',
+                    'controller' => 'register',
+                    'action'     => 'index',
                 ));
                 break;
             default:
@@ -206,7 +211,9 @@ class SystemApi extends AbstractAdapter
      */
     public function authenticate($identity, $credential, $field = 'identity')
     {
-        trigger_error(__METHOD__ . ' not implemented yet', E_USER_NOTICE);
+        $adapter = new DbTable;
+        $result  = Pi::service('authentication')->authenticate($identity, $credential, $adapter);
+        return $result;
     }
     /**#@-*/
 

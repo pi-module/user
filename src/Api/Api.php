@@ -245,6 +245,19 @@ class Api extends AbstractApi
     }
 
     /**
+     * Transform credential
+     *
+     * @param $credential
+     * @param $salt
+     * @return string
+     */
+    public function transformCredential($credential, $salt)
+    {
+        $credential = md5(sprintf('%s%s%s', $salt, $credential, Pi::config('salt')));
+        return $credential;
+    }
+
+    /**
      * Add account data to account table
      *
      * @param $data

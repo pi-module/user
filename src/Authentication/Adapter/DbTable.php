@@ -22,6 +22,12 @@ use Zend\Authentication\Result as AuthenticationResult;
 class DbTable implements AdapterInterface
 {
     /**
+     * Module name to check
+     *
+     * @var string
+     */
+    protected $module;
+    /**
      * Table name to check
      *
      * @var string
@@ -52,6 +58,7 @@ class DbTable implements AdapterInterface
     public function __construct($options = array())
     {
         $this->tableName = 'account';
+        $this->module    = 'user';
     }
 
     /**
@@ -108,9 +115,8 @@ class DbTable implements AdapterInterface
             'messages' => array()
         );
 
-        $this->table = Pi::model($this->tableName, 'user');
+        $this->table = Pi::model($this->tableName, $this->module);
         $resultIdentities = $this->table->select(array($this->table->getIdentityColumn() => $this->identity));
-
         if (count($resultIdentities) < 1) {
             $this->authenticateResultInfo['code'] = AuthenticationResult::FAILURE_IDENTITY_NOT_FOUND;
             $this->authenticateResultInfo['messages'][] = 'A record with the supplied identity could not be found.';
@@ -143,7 +149,8 @@ class DbTable implements AdapterInterface
      */
     protected function authenticateValidateResult($resultIdentity)
     {
-        if ($resultIdentity->transformCredential($this->credential) != $resultIdentity->getCredential()) {
+        $credential = Pi::service('api')->user->transformCredential($this->credential, $resultIdentity->salt);
+        if ($credential != $resultIdentity->credential) {
             $this->authenticateResultInfo['code'] = AuthenticationResult::FAILURE_CREDENTIAL_INVALID;
             $this->authenticateResultInfo['messages'][] = 'Supplied credential is invalid.';
             return $this->authenticateCreateAuthResult();

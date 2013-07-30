@@ -23,7 +23,6 @@ use Module\User\Form\LoginForm;
 use Module\User\Form\LoginFilter;
 use Pi;
 use Pi\Acl\Acl;
-use Module\User\Authentication\Adapter\DbTable;
 
 /**
  * Login controller for user.
@@ -37,6 +36,8 @@ class LoginController extends ActionController
      */
     public function indexAction()
     {
+        // Get module configs
+        $configs = Pi::service('registry')->config->read('user', 'general');
         // If already logged in, redirect home page
         if (Pi::service('user')->getuser()->id) {
             $this->jump(array('route' => 'home'), __('You already logged in. Now go back to homepage.'));
@@ -56,6 +57,7 @@ class LoginController extends ActionController
             $form->setInputFilter(new LoginFilter());
 
             if (!$form->isValid()) {
+                $this->view()->assign(array('form' => $form));
                 return;
             }
 
@@ -65,12 +67,35 @@ class LoginController extends ActionController
             $credential = $value['credential'];
 
             // Authentication identity and credential
-            $adapter = new DbTable;
-            $result = Pi::service('authentication')->authenticate($identity, $credential, $adapter);
-            d($result);
+            $result = Pi::service('user')->authenticate($identity, $credential);
+
+            // Identity or password wrong
+            if (!$result->isValid()) {
+                $this->view()->assign(array(
+                    'message' => __('Invalid credentials provided, please try again.'),
+                    'form'    => $form
+                ));
+                return;
+            }
+
+            /**
+             * Authentication success
+             * Check remember
+             */
+            if ($configs['rememberme'] && $value['rememberme']) {
+                Pi::service('session')->manager()->rememberme($configs['rememberme'] * 86400);
+            }
+
+            // Bind account
+            Pi::service('user')->bind($result->getIdentity(), 'identity');
+
+            if (empty($values['redirect'])) {
+                $redirect = array('route' => 'home');
+            } else {
+                $redirect = urldecode($values['redirect']);
+            }
+            $this->jump($redirect, __('You have logged in successfully.'), 2);
         }
-
-
 
         // Display login Form
         $redirect = $this->params('redirect');
@@ -84,7 +109,16 @@ class LoginController extends ActionController
 
         // Allocation form to template
         $this->view()->assign('form', $form);
+    }
 
+    /**
+     * Logout action
+     *
+     */
+    public function logoutAction()
+    {
+        Pi::service('session')->manager()->destroy();
+        $this->jump(array('route' => 'home'), __('You logged out successfully. Now go back to homepage.'));
     }
 
     /**
@@ -98,4 +132,11 @@ class LoginController extends ActionController
         $form->setAttribute('action', $this->url('', array('controller' => 'login', 'action' => 'index')));
         return $form;
     }
+
+//    public function testAction()
+//    {
+//        $url = Pi::service('user')->getUrl('logout');
+//        d($url);
+//        $this->view()->setTemplate(false);
+//    }
 }
