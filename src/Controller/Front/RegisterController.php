@@ -87,7 +87,7 @@ class RegisterController extends ActionController
                 unset($result);
                 $result = Pi::service('api')->user->setToken($uid, 'activity');
 
-                if (!$result['token']) {
+                if (!$result['code']) {
                     $this->jump($this->url('default', array('controller' => 'register', 'action' => 'index')), __('Register error'), 3);
                 }
 
@@ -109,7 +109,7 @@ class RegisterController extends ActionController
      */
     public function activityAction()
     {
-        $key = $this->params('id', '');
+        $key   = $this->params('id', '');
         $token = $this->params('token', '');
 
         $data = array(
@@ -146,7 +146,6 @@ class RegisterController extends ActionController
                     $data['status']  = 1;
 
                     $this->view()->assign('data', $data);
-                    return;
                 }
             }
         }
@@ -174,7 +173,7 @@ class RegisterController extends ActionController
      */
     protected function send($to, $link, $username)
     {
-        $option = $this->getSmtpOption();
+        $option = Pi::service('api')->user->getSmtpOption();
 
         $params = array(
             'username'      => $username,
@@ -193,19 +192,6 @@ class RegisterController extends ActionController
 
         $transport = Pi::service('mail')->loadTransport('smtp', $option);
         $transport->send($message);
-    }
-
-    /**
-     * Get smtp option from smtp config
-     *
-     * @return smtp config
-     */
-    protected function getSmtpOption()
-    {
-        $configFile = sprintf('%s/extra/%s/config/smtp.config.php', Pi::path('usr'), $this->getModule());
-        $option = include $configFile;
-
-        return $option;
     }
 
     /**

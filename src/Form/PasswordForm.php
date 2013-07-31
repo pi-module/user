@@ -25,19 +25,37 @@ use Pi\Form\Form as BaseForm;
 
 class PasswordForm extends BaseForm
 {
+    protected $type;
+
+    /**
+     * Constructor
+     *
+     * @param null|string|int $name Optional name for the element
+     * @param Account $user User account row
+     */
+    public function __construct($name = null, $type = null)
+    {
+        $this->type = $type;
+        parent::__construct($name);
+    }
+
+
     public function init()
     {
         $config = Pi::service('registry')->config->read('user', 'general');
 
-        $this->add(array(
-            'name'          => 'credential',
-            'options'       => array(
-                'label' => __('Current password'),
-            ),
-            'attributes'    => array(
-                'type'  => 'password',
-            )
-        ));
+        if (!$this->type) {
+            $this->add(array(
+                'name'          => 'credential',
+                'options'       => array(
+                    'label' => __('Current password'),
+                ),
+                'attributes'    => array(
+                    'type'  => 'password',
+                )
+            ));
+        }
+
 
         $this->add(array(
             'name'          => 'credential-new',

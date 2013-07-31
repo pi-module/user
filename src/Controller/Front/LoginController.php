@@ -66,6 +66,21 @@ class LoginController extends ActionController
             $identity = $value['identity'];
             $credential = $value['credential'];
 
+            // Change email to identity
+            $pattern = '/^[0-9a-z_][_.0-9a-z-]{0,31}@([0-9a-z][0-9a-z-]{0,30}\.){1,4}[a-z]{2,4}$/i';
+            if (preg_match($pattern, $identity)) {
+                $userRow = $this->getModel('account')->find($identity, 'email');
+                if ($userRow) {
+                    $identity = $userRow->identity;
+                } else {
+                    $this->view()->assign(array(
+                        'message' => __('Invalid credentials provided, please try again.'),
+                        'form'    => $form
+                    ));
+                    return;
+                }
+            }
+
             // Authentication identity and credential
             $result = Pi::service('user')->authenticate($identity, $credential);
 
@@ -132,11 +147,4 @@ class LoginController extends ActionController
         $form->setAttribute('action', $this->url('', array('controller' => 'login', 'action' => 'index')));
         return $form;
     }
-
-//    public function testAction()
-//    {
-//        $url = Pi::service('user')->getUrl('logout');
-//        d($url);
-//        $this->view()->setTemplate(false);
-//    }
 }

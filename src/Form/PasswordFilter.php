@@ -26,22 +26,24 @@ use Module\User\Validator\CredentialVerify;
 
 class PasswordFilter extends InputFilter
 {
-    public function __construct()
+    public function __construct($type = null)
     {
         $config = Pi::service('registry')->config->read('user', 'general');
 
-        $this->add(array(
-            'name'          => 'credential',
-            'required'      => true,
-            'filters'       => array(
-                array(
-                    'name'  => 'StringTrim',
+        if (!$type) {
+            $this->add(array(
+                'name'          => 'credential',
+                'required'      => true,
+                'filters'       => array(
+                    array(
+                        'name'  => 'StringTrim',
+                    ),
                 ),
-            ),
-            'validators'    => array(
-                new CredentialVerify(),
-            ),
-        ));
+                'validators'    => array(
+                    new CredentialVerify(),
+                ),
+            ));
+        }
 
         $this->add(array(
             'name'          => 'credential-new',
@@ -80,10 +82,6 @@ class PasswordFilter extends InputFilter
                     ),
                 ),
             ),
-        ));
-
-        $this->add(array(
-            'name' => 'identity'
         ));
     }
 }

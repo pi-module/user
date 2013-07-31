@@ -258,6 +258,19 @@ class Api extends AbstractApi
     }
 
     /**
+     * Get smtp option from smtp config
+     *
+     * @return smtp config
+     */
+    public function getSmtpOption()
+    {
+        $configFile = sprintf('%s/extra/%s/config/smtp.config.php', Pi::path('usr'), $this->getModule());
+        $option = include $configFile;
+
+        return $option;
+    }
+
+    /**
      * Add account data to account table
      *
      * @param $data

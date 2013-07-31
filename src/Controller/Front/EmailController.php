@@ -66,9 +66,20 @@ class EmailController extends ActionController
             if ($form->isValid()) {
                 $values = $form->getData();
                 // Generate token
-                $uid = Pi::service('user')->getUser()->id
-                $result = Pi::service('api')->user->setToken($uid, 'activity');
+                $uid    = Pi::service('user')->getUser()->id;
+                $result = Pi::service('api')->user->setToken($uid, 'email');
 
+                if (!$result['code']) {
+                    $this->jump($this->url('default', array('controller' => 'email', 'action' => 'index')), __('Change email error'), 3);
+                }
+
+                // Send verify email
+                $to = $values['email-new'];
+                $baseLocation = Pi::host()->get('baseLocation');
+                $link = $baseLocation . $this->url('default', array('controller' => 'email', 'action' => 'process', 'id'=> md5($uid), 'token' => $result['code'], 'new' => urlencode($values['email-new'])));
+                $this->send($to, $link, $identity);
+
+                $this->redirect('default',array('controller' => 'email', 'action' => 'sendComplete'));
 
             } else {
                 $form->setData(array('identity' => $identity));
@@ -88,12 +99,95 @@ class EmailController extends ActionController
         ));
     }
 
-    public function sendAction()
+    /**
+     * 1. Verify token
+     * 2. Change email
+     * 3. Display result message
+     */
+    public function processAction()
     {
-        $title = __('Send activation');
-        $this->view()->assign(array(
-            'title' => $title,
-        ));
-        $this->view()->setTemplate('email-send');
+        $key      = $this->params('id', '');
+        $token    = $this->params('token', '');
+        $newEmail = urldecode($this->params('new', ''));
+
+        $data = array(
+            'message' => __('Change email fail!'),
+            'status'  => 0,
+        );
+
+        // Assign title to template
+        $this->view()->assign('title', __('Change email'));
+
+        // Verify link invalid
+        if (!key || !$token || !$newEmail) {
+            $this->view()->assign('data', $data);
+            return;
+        }
+
+        $rowset = $this->getModel('token')->find($token, 'code');
+
+        if ($rowset) {
+            $hashUid = md5($rowset->uid);
+            $userRow = $this->getModel('account')->find($rowset->uid, 'id');
+
+            if ($userRow && $hashUid == $key) {
+                $expire  = $rowset->time + 24 * 3600;
+                $current = time();
+
+                // Valid verify link
+                if ($current < $expire) {
+                    // Change email
+                    $userRow->email = $newEmail;
+                    $userRow->save();
+                }
+
+                // Delete change email verify link
+                $this->getModel('token')->delete(array('id' => $rowset->id));
+
+                $data['message'] = __('Change success');
+                $data['status']  = 1;
+
+                $this->view()->assign('data', $data);
+            }
+        }
+    }
+
+    /**
+     * Display send verify mail message
+     *
+     */
+    public function sendCompleteAction()
+    {
+        $changeEmailLink = $this->url('default', array('controller' => 'email', 'action' => 'index' ));
+        $this->view()->assign('changeEmailLink', $changeEmailLink);
+        $this->view()->setTemplate('change-email-success');
+    }
+
+    /**
+     * Send change email verify  mail
+     *
+     * @param $to User email
+     * @param $link verify  link
+     */
+    protected function send($to, $link, $username)
+    {
+        $option = Pi::service('api')->user->getSmtpOption();
+        $params = array(
+            'username'          => $username,
+            'change_email_link' => $link,
+            'sn'                => _date(),
+        );
+
+        // Load from HTML template
+        $data = Pi::service('mail')->template('change-email-html', $params);
+        // Set subject and body
+        $subject = $data['subject'];
+        $body = $data['body'];
+        $type = $data['format'];
+        $message = Pi::service('mail')->message($subject, $body, $type);
+        $message->addTo($to);
+
+        $transport = Pi::service('mail')->loadTransport('smtp', $option);
+        $transport->send($message);
     }
 }
