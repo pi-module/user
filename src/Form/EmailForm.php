@@ -1,6 +1,6 @@
 <?php
 /**
- * Login form input filter
+ * Email form
  *
  * You may not change or alter any portion of this comment or credits
  * of supporting developers from this source code or any supporting source code
@@ -21,41 +21,48 @@
 namespace Module\User\Form;
 
 use Pi;
-use Zend\InputFilter\InputFilter;
+use Pi\Form\Form as BaseForm;
 
-class LoginFilter extends InputFilter
+class EmailForm extends BaseForm
 {
-    public function __construct()
+    public function init()
     {
         $this->add(array(
-            'name'          => 'identity',
-            'required'      => true,
-            'filters'    => array(
-                array(
-                    'name'  => 'StringTrim',
-                ),
+            'name'       => 'email-new',
+            'options'    => array(
+                'label' => __('New email'),
+            ),
+            'attributes' => array(
+                'type' => 'text',
             ),
         ));
 
         $this->add(array(
             'name'          => 'credential',
-            'required'      => true,
-            'filters'    => array(
-                array(
-                    'name'  => 'StringTrim',
-                ),
+            'options'       => array(
+                'label' => __('Current password'),
             ),
+            'attributes'    => array(
+                'type'  => 'password',
+            )
         ));
 
-        if (Pi::config('rememberme', 'user')) {
-            $this->add(array(
-                'name'  => 'rememberme',
-            ));
-        }
+        $this->add(array(
+            'name'  => 'identity',
+            'type'  => 'hidden',
+        ));
 
         $this->add(array(
-            'name'      => 'redirect',
-            'required'  => false,
+            'name'  => 'security',
+            'type'  => 'csrf',
+        ));
+
+        $this->add(array(
+            'name'          => 'submit',
+            'type'          => 'submit',
+            'attributes'    => array(
+                'value' => __('Submit'),
+            )
         ));
     }
 }

@@ -23,6 +23,11 @@ namespace Module\User\Validator;
 use Pi;
 use Zend\Validator\AbstractValidator;
 
+/**
+ * Validator for username
+ *
+ * @author Liu Chuang <liuchuang@eefocus.com>
+ */
 class UserName extends AbstractValidator
 {
     const INVALID   = 'userNameInvalid';

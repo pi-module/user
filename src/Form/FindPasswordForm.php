@@ -1,6 +1,6 @@
 <?php
 /**
- * Login form input filter
+ * Find password form
  *
  * You may not change or alter any portion of this comment or credits
  * of supporting developers from this source code or any supporting source code
@@ -21,41 +21,43 @@
 namespace Module\User\Form;
 
 use Pi;
-use Zend\InputFilter\InputFilter;
+use Pi\Form\Form as BaseForm;
 
-class LoginFilter extends InputFilter
+class FindPasswordForm extends BaseForm
 {
-    public function __construct()
+    public function init()
     {
         $this->add(array(
-            'name'          => 'identity',
-            'required'      => true,
-            'filters'    => array(
-                array(
-                    'name'  => 'StringTrim',
-                ),
+            'name'       => 'email',
+            'options'    => array(
+                'label' => __('Email'),
+            ),
+            'attributes' => array(
+                'type' => 'text',
             ),
         ));
 
         $this->add(array(
-            'name'          => 'credential',
-            'required'      => true,
-            'filters'    => array(
-                array(
-                    'name'  => 'StringTrim',
-                ),
+            'name'    => 'captcha',
+            'options' => array(
+                'label'     => __('Please type the word'),
+                'separator' => '<br />',
             ),
+            'type'    => 'captcha',
         ));
 
-        if (Pi::config('rememberme', 'user')) {
-            $this->add(array(
-                'name'  => 'rememberme',
-            ));
-        }
+        $this->add(array(
+            'name' => 'security',
+            'type' => 'csrf',
+        ));
 
         $this->add(array(
-            'name'      => 'redirect',
-            'required'  => false,
+            'name'       => 'submit',
+            'attributes' => array(
+                'type'  => 'submit',
+                'value' => __('Find password'),
+                'class' => 'btn',
+            ),
         ));
     }
 }

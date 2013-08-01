@@ -25,8 +25,18 @@ use Pi\Db\RowGateway\RowGateway;
 
 class Api extends AbstractApi
 {
+    /**
+     * Current module name
+     *
+     * @var string
+     */
     protected $module = 'user';
 
+    /**
+     * Account columns
+     *
+     * @var array
+     */
     protected $accountColumns = array(
         'id',
         'identity',
@@ -36,6 +46,11 @@ class Api extends AbstractApi
         'salt',
     );
 
+    /**
+     * Base profile columns
+     *
+     * @var array
+     */
     protected $baseProfileColumns = array(
         'uid',
         'name',
@@ -46,6 +61,11 @@ class Api extends AbstractApi
         'location',
     );
 
+    /**
+     * Education columns array
+     *
+     * @var array
+     */
     protected $educationColumns = array(
         'uid',
         'start_date',
@@ -56,11 +76,22 @@ class Api extends AbstractApi
         'class',
     );
 
+    /**
+     * Role columns
+     *
+     * @var array
+     */
     protected $roleColumns = array(
         'uid',
         'role',
     );
 
+    /**
+     * Canonize register information
+     *
+     * @param $data
+     * @return array
+     */
     protected  function canonize($data)
     {
         $account       = array();
@@ -151,15 +182,6 @@ class Api extends AbstractApi
     }
 
     /**
-     *
-     * @param null $id
-     */
-    public function getUser($id = null)
-    {
-
-    }
-
-    /**
      * set token for verify
      *
      * @param $uid user identify
@@ -222,6 +244,38 @@ class Api extends AbstractApi
         return $return;
     }
 
+    /**
+     * Transform credential
+     *
+     * @param $credential
+     * @param $salt
+     * @return string
+     */
+    public function transformCredential($credential, $salt)
+    {
+        $credential = md5(sprintf('%s%s%s', $salt, $credential, Pi::config('salt')));
+        return $credential;
+    }
+
+    /**
+     * Get smtp option from smtp config
+     *
+     * @return smtp config
+     */
+    public function getSmtpOption()
+    {
+        $configFile = sprintf('%s/extra/%s/config/smtp.config.php', Pi::path('usr'), $this->getModule());
+        $option = include $configFile;
+
+        return $option;
+    }
+
+    /**
+     * Add account data to account table
+     *
+     * @param $data
+     * @return bool
+     */
     protected function addAccount($data)
     {
         $row = Pi::model('account', $this->module)->prepare($data);
@@ -233,16 +287,32 @@ class Api extends AbstractApi
         return false;
     }
 
+    /**
+     * Add base profile data
+     *
+     * @param $data
+     */
     protected function addBaseProfile($data)
     {
 
     }
 
+    /**
+     * Add extend profile data
+     *
+     * @param $data
+     */
     protected function addExtendProfile($data)
     {
 
     }
 
+    /**
+     * Add user data
+     *
+     * @param $uid
+     * @return bool
+     */
     protected function addUserData($uid)
     {
         if (!$uid) {
@@ -273,16 +343,37 @@ class Api extends AbstractApi
     }
 
 
+    /**
+     * Set user role
+     *
+     * @param $uid
+     * @param $role
+     * @return bool
+     */
     protected function setUserRole($uid, $role)
     {
         return $this->setRole($uid, $role, 'user');
     }
 
+    /**
+     * Set back office role
+     *
+     * @param $uid
+     * @param $role
+     */
     protected function setStaffRole($uid, $role)
     {
 
     }
 
+    /**
+     * Set role
+     *
+     * @param $uid
+     * @param $role
+     * @param string $type
+     * @return bool
+     */
     protected function setRole($uid, $role, $type = 'user')
     {
         $model = ('staff' == $type) ? Pi::model('staff', $this->module) : Pi::model('role', $this->module);
@@ -311,6 +402,4 @@ class Api extends AbstractApi
         }
         return true;
     }
-
-
 }
