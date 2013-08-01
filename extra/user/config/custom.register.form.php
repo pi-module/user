@@ -67,7 +67,7 @@ $config['item'] = array(
                 ),
 
                 // Set custom verify class.
-                new \Module\User\Validator\UserName(array(
+                new \Module\System\Validator\UserName(array(
                     'format'            => 'strict',
                     'backlist'          => 'webmaster|^pi|^admin',
                     'checkDuplication'  => true,

@@ -1,6 +1,6 @@
 <?php
 /**
- * Login form input filter
+ * Find password  form input filter
  *
  * You may not change or alter any portion of this comment or credits
  * of supporting developers from this source code or any supporting source code
@@ -23,39 +23,28 @@ namespace Module\User\Form;
 use Pi;
 use Zend\InputFilter\InputFilter;
 
-class LoginFilter extends InputFilter
+class FindPasswordFilter extends InputFilter
 {
     public function __construct()
     {
         $this->add(array(
-            'name'          => 'identity',
-            'required'      => true,
-            'filters'    => array(
+            'name' => 'email',
+            'required' => true,
+            'filters' => array(
                 array(
-                    'name'  => 'StringTrim',
+                    'name' => 'StringTrim',
                 ),
             ),
-        ));
-
-        $this->add(array(
-            'name'          => 'credential',
-            'required'      => true,
-            'filters'    => array(
+            'validators' => array(
                 array(
-                    'name'  => 'StringTrim',
+                    'name' => 'EmailAddress',
+                    'options' => array(
+                        'useMxCheck'     => false,
+                        'useDeepMxCheck' => false,
+                        'useDomainCheck' => false,
+                    ),
                 ),
             ),
-        ));
-
-        if (Pi::config('rememberme', 'user')) {
-            $this->add(array(
-                'name'  => 'rememberme',
-            ));
-        }
-
-        $this->add(array(
-            'name'      => 'redirect',
-            'required'  => false,
         ));
     }
 }

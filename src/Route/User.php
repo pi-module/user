@@ -11,7 +11,7 @@
  *
  * @copyright       Copyright (c) Pi Engine http://www.xoopsengine.org
  * @license         http://www.xoopsengine.org/license New BSD License
- * @author          Liu Chuang <zongshu@eefocus.com>
+ * @author          Liu Chuang <liuchuang@eefocus.com>
  * @since           1.0
  * @package         Module\User
  * @subpackage      Route
@@ -24,6 +24,11 @@ use Zend\Mvc\Router\Http\RouteMatch;
 use Zend\Stdlib\RequestInterface as Request;
 use Pi;
 
+/**
+ * Rout for user system
+ *
+ * @author Liu Chuang <liuchuang@eefocus.com>
+ */
 class User extends Standard
 {
     protected $prefix = '';

@@ -1,6 +1,6 @@
 <?php
 /**
- * Login form
+ * User system password form
  *
  * You may not change or alter any portion of this comment or credits
  * of supporting developers from this source code or any supporting source code
@@ -23,27 +23,44 @@ namespace Module\User\Form;
 use Pi;
 use Pi\Form\Form as BaseForm;
 
-class LoginForm extends BaseForm
+class PasswordForm extends BaseForm
 {
+    protected $type;
+
+    /**
+     * Constructor
+     *
+     * @param null|string|int $name Optional name for the element
+     * @param Account $user User account row
+     */
+    public function __construct($name = null, $type = null)
+    {
+        $this->type = $type;
+        parent::__construct($name);
+    }
+
+
     public function init()
     {
-        // Get config data.
         $config = Pi::service('registry')->config->read('user', 'general');
 
-        $this->add(array(
-            'name'          => 'identity',
-            'options'       => array(
-                'label' => __('Username'),
-            ),
-            'attributes'    => array(
-                'type'  => 'text',
-            )
-        ));
+        if (!$this->type) {
+            $this->add(array(
+                'name'          => 'credential',
+                'options'       => array(
+                    'label' => __('Current password'),
+                ),
+                'attributes'    => array(
+                    'type'  => 'password',
+                )
+            ));
+        }
+
 
         $this->add(array(
-            'name'          => 'credential',
+            'name'          => 'credential-new',
             'options'       => array(
-                'label' => __('Password'),
+                'label' => __('New password'),
             ),
             'attributes'    => array(
                 'type'  => 'password',
@@ -51,25 +68,22 @@ class LoginForm extends BaseForm
         ));
 
         $this->add(array(
-            'name'          => 'rememberme',
-            'type'          => 'checkbox',
+            'name'          => 'credential-confirm',
             'options'       => array(
-                'label' => __('Remember me'),
+                'label' => __('Confirm password'),
             ),
             'attributes'    => array(
-                'value'         => '1',
-                'description'   => __('Keep me logged in.')
+                'type'  => 'password',
             )
         ));
 
-
-        if ($config['login_captcha']) {
+        if ($config['register_captcha']) {
             $this->add(array(
                 'name'          => 'captcha',
                 'type'          => 'captcha',
                 'options'       => array(
                     'label'     => __('Please type the word.'),
-                    'separator'         => '<br />',
+                    'separator' => '<br />',
                 )
             ));
         }
@@ -79,26 +93,16 @@ class LoginForm extends BaseForm
             'type'  => 'csrf',
         ));
 
-        $request = Pi::engine()->application()->getRequest();
-        $redirect = $request->getQuery('redirect');
-        if (null === $redirect) {
-            $redirect = $request->getServer('HTTP_REFERER') ?: $request->getRequestUri();
-        }
-        $redirect = $redirect ? urlencode($redirect) : '';
         $this->add(array(
-            'name'  => 'redirect',
+            'name'  => 'identity',
             'type'  => 'hidden',
-            'attributes'    => array(
-                'value' => $redirect,
-            ),
         ));
 
         $this->add(array(
             'name'          => 'submit',
+            'type'          => 'submit',
             'attributes'    => array(
-                'type'  => 'submit',
-                'value' => __('Login'),
-                'class' => 'btn',
+                'value' => __('Submit'),
             )
         ));
     }
