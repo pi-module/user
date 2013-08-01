@@ -21,7 +21,8 @@ namespace Module\User\Controller\Front;
 use Pi\Mvc\Controller\ActionController;
 use Pi;
 use Pi\Acl\Acl;
-use Module\User\Form\RegisterForm;
+use Module\User\Form\CustomForm;
+use Module\User\Form\CustomFilter;
 /**
  * Register controller for user.
  */
@@ -49,13 +50,19 @@ class RegisterController extends ActionController
             $groups[$item['category']]['elements'][] = $item['element']['name'];
         }
 
-        $form = $this->getForm($configs['item']);
+        $action = $this->url('default', array('controller' => 'register', 'action' => 'index'));
+        $form = $this->getForm('register', $configs['item'], $action);
         $form->setGroups($groups);
 
         if ($this->request->isPost()) {
             // Process register request
             $post = $this->request->getPost();
 
+            foreach ($configs['item'] as $item) {
+                $filters[] = $item['filter'];
+            }
+
+            $form->setInputFilter(new CustomFilter($filters));
             $form->setData($post);
 
             if ($form->isValid()) {
@@ -151,17 +158,68 @@ class RegisterController extends ActionController
         }
     }
 
+    /**
+     * Last step register
+     * Complete profile information
+     */
+    public function completeAction()
+    {
+        // Get custom configs from config file.
+        $configFile = sprintf('%s/extra/%s/config/custom.register.complete.form.php', Pi::path('usr'), $this->getModule());
+        $configs = include $configFile;
+        if (!empty($configs)) {
+
+            // Get group.
+            $groups = array();
+            foreach ($configs['category'] as $category) {
+                $groups[$category['name']] = array(
+                    'label'    => $category['title'],
+                    'elements' => array(),
+                );
+            }
+
+            foreach ($configs['item'] as $item) {
+                $groups[$item['category']]['elements'][] = $item['element']['name'];
+            }
+
+            $action = $this->url('default', array('controller' => 'register', 'action' => 'complete'));
+            $form = $this->getForm('registerComplete', $configs['item'], $action);
+            $form->setGroups($groups);
+        }
+
+        if ($this->request->isPost()) {
+            $post = $this->request->getPost();
+
+            // Get custom filter
+            foreach ($configs['item'] as $item) {
+                $filters[] = $item['filter'];
+            }
+
+            $form->setInputFilter(new CustomFilter($filters));
+            $form->setData($post);
+            if ($form->isValid()) {
+                $values = $form->getData();
+
+                $categoryMap = $this->getCategoryMap($configs['item']);
+
+            }
+        }
+
+        $this->view()->assign(array(
+            'form' => $form,
+        ));
+    }
 
     /**
      * Generate register form
      *
      * @param $configs
-     * @return \Module\User\Form\RegisterForm
+     * @return \Module\User\Form\CustomForm
      */
-    protected function getForm($configs)
+    protected function getForm($name, $configs, $action)
     {
-        $form = new RegisterForm($configs);
-        $form->setAttribute('action', $this->url('default', array('controller' => 'register', 'action' => 'index')));
+        $form = new CustomForm($name, $configs);
+        $form->setAttribute('action', $action);
         return $form;
     }
 
@@ -195,18 +253,46 @@ class RegisterController extends ActionController
     }
 
     /**
+     * Get category map from custom config
+     *
+     * @param $items
+     * @return array
+     */
+    protected function getCategoryMap($items)
+    {
+        foreach ($items as $item) {
+            $category[$item['element']['name']] = $item['category'];
+        }
+
+        return $category;
+    }
+
+    protected function getTableColumsName($tableName)
+    {
+
+        $row = $this->getModel($tableName)->getColumnsName();
+    }
+
+    /**
      * Just for test.
      *
      */
     public  function testAction()
     {
-//        $config = Pi::service('registry')->config->read('user', 'general');
-//        d($config);
-//        $id = Pi::service('user')->getUser();
-//        d($id);
-        //$id = Pi::service('user');
-//        d($id);
-        d($this->getSmtpOption());
-        $this->view()->setTemplate(false);
+////        $config = Pi::service('registry')->config->read('user', 'general');
+////        d($config);
+////        $id = Pi::service('user')->getUser();
+////        d($id);
+//        //$id = Pi::service('user');
+////        d($id);
+//        //d($this->getSmtpOption());
+//        //$this->view()->setTemplate(false);
+//        $row = $this->getModel('profile')->getColumnsName();
+//
+//        foreach ($row as $r) {
+//            d($r['name']);
+//        }
+//
+//        d($_POST['bit']);
     }
 }
