@@ -23,18 +23,19 @@ namespace Module\User\Form;
 use Pi;
 use Pi\Form\Form as BaseForm;
 
-class RegisterForm extends BaseForm
+class CustomForm extends BaseForm
 {
     protected $configs;
-    protected $name = 'register';
+    protected $name;
 
     /**
      * Constructor
      * @param null $configs
      */
-    public function __construct($configs)
+    public function __construct($name, $configs)
     {
         $this->configs = $configs;
+        $this->name    = $name;
         parent::__construct($this->name);
     }
 
@@ -53,18 +54,17 @@ class RegisterForm extends BaseForm
         ));
     }
 
-    /**
-     * Verify form
-     * @return bool
-     */
-    public function isValid()
-    {
-        foreach ($this->configs as $filter) {
-            if (!empty($filter['filter'])) {
-                $this->getInputFilter()->add($filter['filter']);
-            }
-        }
-
-        return parent::isValid();
-    }
+//    /**
+//     * Verify form
+//     * @return bool
+//     */
+//    public function isValid()
+//    {
+//        foreach ($this->configs as $filter) {
+//            if (!empty($filter['filter'])) {d($filter['filter']);
+//                $this->getInputFilter()->add($filter['filter']);
+//            }
+//        }
+//        return parent::isValid();
+//    }
 }
