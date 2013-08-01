@@ -1,0 +1,13 @@
+<?php
+$this->jQuery();
+$this->bootstrap(array(
+    'datepicker/datepicker.css',
+    'datepicker/bootstrap-datepicker.js'
+));
+?>
+<h2><?php _e('Perfect your information')?></h2>
+<?php include $this->templateComponent('form'); ?>
+
+<script>
+    $('#birthday').datepicker();
+</script>

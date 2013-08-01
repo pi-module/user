@@ -1,1 +1,20 @@
+<?php
+$this->jQuery();
+$this->bootstrap(array(
+    'datepicker/datepicker.css',
+    'datepicker/bootstrap-datepicker.js'
+));
+?>
+
+<ul class="nav nav-tabs">
+    <li class="<?php echo $type == 'register' ? 'active' : ''; ?>">
+        <a href="<?php echo $this->url('admin', array('controller' => 'custom', 'action' => 'register'));?>"><?php _e('Register form');?></a>
+    </li>
+    <li class="<?php echo $type == 'complete' ? 'active' : ''; ?>"><a href="<?php echo $this->url('admin', array('controller' => 'custom', 'action' => 'register.complete'));?>"><?php _e('Profile perfection form');?></a></li>
+    <li class="<?php echo $type == 'edit' ? 'active' : ''; ?>"><a href="<?php echo $this->url('admin', array('controller' => 'custom', 'action' => 'profile.edit'));?>"><?php _e('Profile edit form');?></a></li>
+</ul>
 <?php include $this->templateComponent('form'); ?>
+
+<script>
+    $('#birthday').datepicker();
+</script>

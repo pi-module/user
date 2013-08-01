@@ -20,7 +20,7 @@ namespace Module\User\Controller\Admin;
 
 use Pi\Mvc\Controller\ActionController;
 use Pi;
-use Module\User\Form\RegisterForm;
+use Module\User\Form\CustomForm;
 
 /**
  * Custom action controller for administrator custom user system.
@@ -30,10 +30,10 @@ class CustomController extends ActionController
     /**
      * Custom register form preview.
      */
-    public function registerFormAction()
+    public function registerAction()
     {
         // Get custom configs from config file.
-        $configFile = sprintf('%s/%s/config/custom.register.form.php', Pi::path('module'), $this->getModule());
+        $configFile = sprintf('%s/extra/%s/config/custom.register.form.php', Pi::path('usr'), $this->getModule());
         $configs = include $configFile;
 
         if (!empty($configs)) {
@@ -51,10 +51,43 @@ class CustomController extends ActionController
                 $groups[$item['category']]['elements'][] = $item['element']['name'];
             }
 
-            $form = $this->getForm($configs['item']);
+            $form = $this->getForm('register', $configs['item']);
             $form->setGroups($groups);
         }
-        $this->view()->assign('form', $form);
+        $this->view()->assign(array(
+            'form' => $form,
+            'type' => 'register',
+        ));
+        $this->view()->setTemplate('custom-form');
+    }
+
+    public function registerCompleteAction()
+    {
+        // Get custom configs from config file.
+        $configFile = sprintf('%s/extra/%s/config/custom.register.complete.form.php', Pi::path('usr'), $this->getModule());
+        $configs = include $configFile;
+        if (!empty($configs)) {
+
+            // Get group.
+            $groups = array();
+            foreach ($configs['category'] as $category) {
+                $groups[$category['name']] = array(
+                    'label'    => $category['title'],
+                    'elements' => array(),
+                );
+            }
+
+            foreach ($configs['item'] as $item) {
+                $groups[$item['category']]['elements'][] = $item['element']['name'];
+            }
+
+            $form = $this->getForm('registerComplete', $configs['item']);
+            $form->setGroups($groups);
+        }
+        $this->view()->assign(array(
+            'form' => $form,
+            'type' => 'complete',
+        ));
         $this->view()->setTemplate('custom-form');
     }
 
@@ -62,11 +95,11 @@ class CustomController extends ActionController
      * Get custom form to preview
      *
      * @param $configs
-     * @return \Module\User\Form\RegisterForm
+     * @return \Module\User\Form\CustomForm
      */
-    protected function getForm($configs)
+    protected function getForm($name, $configs)
     {
-        $form = new RegisterForm($configs);
+        $form = new CustomForm($name, $configs);
         return $form;
     }
 

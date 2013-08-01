@@ -60,7 +60,7 @@ return array(
                     'staff'             => 'table',
                 ),
             ),
-//            'navigation'    => 'navigation.php',
+           'navigation'    => 'navigation.php',
 //            'block'         => 'block.php',
             'config'        => 'config.php',
             //'route'         => 'route.php',
