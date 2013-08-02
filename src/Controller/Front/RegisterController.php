@@ -151,11 +151,12 @@ class RegisterController extends ActionController
 
                     $data['message'] = __('Activity success');
                     $data['status']  = 1;
-
                     $this->view()->assign('data', $data);
                 }
             }
         }
+
+        $this->view()->assign('data', $data);
     }
 
     /**
@@ -164,6 +165,11 @@ class RegisterController extends ActionController
      */
     public function completeAction()
     {
+        $uid = Pi::service('user')->getUser()->id;
+        $redirect = Pi::engine()->application()->getRequest()->getRequestUri();
+        if (!$uid) {
+            $this->redirect('default', array('controller' => 'login', 'action' => 'index', 'redirect' => $redirect));
+        }
         // Get custom configs from config file.
         $configFile = sprintf('%s/extra/%s/config/custom.register.complete.form.php', Pi::path('usr'), $this->getModule());
         $configs = include $configFile;
@@ -199,9 +205,47 @@ class RegisterController extends ActionController
             $form->setData($post);
             if ($form->isValid()) {
                 $values = $form->getData();
+                unset($values['submit']);
+                // Canonize form data
+                list(, , $profile, $education, $extendProfile) = Pi::service('api')->user->canonize($values);
+                if (!empty($profile)) {
+                    $profile['uid'] = $uid;
 
-                $categoryMap = $this->getCategoryMap($configs['item']);
+                    // Transform sting to int
+                    if (isset($profile['birthday'])) {
+                        $profile['birthday'] = strtotime($profile['birthday']);
+                    }
+                    $this->setProfile($profile);
+                }
 
+                if (!empty($education)) {
+                    $education['uid'] = $uid;
+
+                    // Transform string to int
+                    if (isset($education['start_date'])) {
+                        $education['start_date'] = strtotime($education['start_date']);
+                    }
+                    if (isset($education['end_date'])) {
+                        $education['end_date'] = strtotime($education['end_date']);
+                    }
+
+                    $this->setEducation($education);
+                }
+
+                if (!empty($extendProfile)) {
+                    $extendProfile['uid'] = $uid;
+                    $this->setExtendProfile($extendProfile);
+                }
+
+                // Set user data
+                $userDataRow = $this->getModule('user_data')->find($uid, 'uid');
+                if ($userDataRow) {
+                    $userDataRow->time_update = time();
+                    $userDataRow->save();
+                }
+
+                // Redirect profile page
+                $this->redirect($this->url('default', array('controller' => 'profile', 'action' =>'index')));
             }
         }
 
@@ -253,46 +297,95 @@ class RegisterController extends ActionController
     }
 
     /**
-     * Get category map from custom config
+     * Set profile for register
      *
-     * @param $items
-     * @return array
+     * @param $profile
+     * @return int
      */
-    protected function getCategoryMap($items)
+    protected function setProfile($profile)
     {
-        foreach ($items as $item) {
-            $category[$item['element']['name']] = $item['category'];
+        if (empty($profile)) {
+            return 0;
         }
 
-        return $category;
-    }
+        $profileModel = $this->getModel('profile');
+        $row = $profileModel->find($profile['uid'], 'uid');
 
-    protected function getTableColumsName($tableName)
-    {
+        if (!$row) {
+            $row = $profileModel->createRow($profile);
+            $row->save();
+        } else {
+            foreach ($profile as $key => $value) {
+                $row->$key = $value;
+            }
+            $row->save();
+        }
 
-        $row = $this->getModel($tableName)->getColumnsName();
+        return $row->id ?: 0;
     }
 
     /**
-     * Just for test.
+     * Set extend profile for register
      *
+     * @param $exProfile
+     * @return bool
      */
-    public  function testAction()
+    protected function setExtendProfile($exProfile)
     {
-////        $config = Pi::service('registry')->config->read('user', 'general');
-////        d($config);
-////        $id = Pi::service('user')->getUser();
-////        d($id);
-//        //$id = Pi::service('user');
-////        d($id);
-//        //d($this->getSmtpOption());
-//        //$this->view()->setTemplate(false);
-//        $row = $this->getModel('profile')->getColumnsName();
-//
-//        foreach ($row as $r) {
-//            d($r['name']);
-//        }
-//
-//        d($_POST['bit']);
+        if (empty($exProfile)) {
+            return true;
+        }
+
+        $uid = $exProfile['uid'];
+        unset($exProfile['uid']);
+
+        $exProfileModel = $this->getModel('extend_profile');
+
+        foreach ($exProfile as $name => $value) {
+            $select = $exProfileModel->select()->where(array('uid' => $uid, 'name' => $name));
+            $row = $exProfileModel->selectWith($select)->current();
+            if ($row) {
+                $exProfileModel->update(
+                    array('name' => $name, 'value' => $value),
+                    array('id', $row->id)
+                );
+            } else {
+                $row = $exProfileModel->createRow(array(
+                    'uid' => $uid,
+                    'name' => $name,
+                    'value' => $value
+                ));
+                $row->save();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Set education for register
+     *
+     * @param $education
+     * @return int
+     */
+    protected function setEducation($education)
+    {
+        if (empty($education)) {
+            return 0;
+        }
+
+        $educationModel = $this->getModel('education');
+        $row = $educationModel->find($education['uid'], 'uid');
+
+        if (!$row) {
+            $row = $educationModel->createRow($education);
+            $row->save();
+        } else {
+            foreach ($education as $key => $value) {
+                $row->$key = $value;
+            }
+            $row->save();
+        }
+
+        return $row->id ?: 0;
     }
 }
