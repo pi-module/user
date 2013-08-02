@@ -87,18 +87,18 @@ class Api extends AbstractApi
     );
 
     /**
-     * Canonize register information
+     * Canonize user account and profile information
      *
      * @param $data
      * @return array
      */
-    protected  function canonize($data)
+    public function canonize($data)
     {
         $account       = array();
         $role          = array();
         $baseProfile   = array();
+        $education     = array();
         $extendProfile = array();
-        $userData      = array();
 
         foreach (array_keys($data) as $key) {
             // Role
@@ -111,13 +111,16 @@ class Api extends AbstractApi
             }elseif (in_array($key, $this->baseProfileColumns)) {
                 // Base profile
                 $baseProfile[$key] = $data[$key];
+            }elseif (in_array($key, $this->educationColumns)) {
+                $education[$key] = $data[$key];
+
             }else {
                 // Extend profile
                 $extendProfile[$key] = $data[$key];
             }
         }
 
-        return array($account, $role, $baseProfile, $extendProfile);
+        return array($account, $role, $baseProfile, $education, $extendProfile);
     }
 
     /**
@@ -134,7 +137,7 @@ class Api extends AbstractApi
             'id'      => 0,
         );
 
-        list($account, $role, $baseProfile, $extendProfile) = $this->canonize($data);
+        list($account, $role, $baseProfile, $education, $extendProfile) = $this->canonize($data);
         // Add account.
         $uid = empty($account) ? 0 : $this->addAccount($account);
         if (!$uid) {
@@ -160,6 +163,7 @@ class Api extends AbstractApi
 
         // Add base profile
         if (!empty($baseProfile)) {
+            $baseProfile['uid'] = $uid;
             $status = $this->addBaseProfile($baseProfile);
             if (!$status) {
                 $return['message'] = sprintf('User "%s" base profile is not created.', $uid);
@@ -167,9 +171,21 @@ class Api extends AbstractApi
             }
         }
 
+        // Add education
+        if (!empty($education)) {
+            $education['uid'] = $uid;
+            $status = $this->addEducation($education);
+            if (!$status) {
+                $return['message'] = sprintf('User "%s" education is not created.', $uid);
+                return $return;
+            }
+
+        }
+
         // Add extend profile
         if (!empty($extendProfile)) {
-            $status = $this->addExtendProfile($data);
+            $extendProfile['uid'] = $uid;
+            $status = $this->addExtendProfile($extendProfile);
             if (!$status) {
                 $return['message'] = sprintf('User "%s" base profile is not created.', $uid);
                 return $return;
@@ -292,19 +308,89 @@ class Api extends AbstractApi
      *
      * @param $data
      */
-    protected function addBaseProfile($data)
+    protected function addBaseProfile($profile)
     {
+        if (empty($profile)) {
+            return 0;
+        }
 
+        $profileModel = $this->getModel('profile');
+        $row = $profileModel->find($profile['uid'], 'uid');
+
+        if (!$row) {
+            $row = $profileModel->createRow($profile);
+            $row->save();
+        } else {
+            foreach ($profile as $key => $value) {
+                $row->$key = $value;
+            }
+            $row->save();
+        }
+
+        return $row->id ?: 0;
     }
 
     /**
-     * Add extend profile data
+     * Add education
      *
-     * @param $data
+     * @param $education
      */
-    protected function addExtendProfile($data)
+    protected function addEducation($education)
     {
+        if (empty($education)) {
+            return 0;
+        }
 
+        $educationModel = $this->getModel('education');
+        $row = $educationModel->find($education['uid'], 'uid');
+
+        if (!$row) {
+            $row = $educationModel->createRow($education);
+            $row->save();
+        } else {
+            foreach ($education as $key => $value) {
+                $row->$key = $value;
+            }
+            $row->save();
+        }
+
+        return $row->id ?: 0;
+    }
+
+    /**
+     * Add extend profile
+     *
+     * @param $exProfile
+     */
+    protected function addExtendProfile($exProfile)
+    {
+        if (empty($exProfile)) {
+            return true;
+        }
+
+        $uid = $exProfile['uid'];
+        unset($exProfile['uid']);
+
+        $exProfileModel = $this->getModel('extend_profile');
+
+        foreach ($exProfile as $name => $value) {
+            $select = $exProfileModel->select()->where(array('uid' => $uid, 'name' => $name));
+            $row = $exProfileModel->selectWith($select)->current();
+            if ($row) {
+                $exProfileModel->update(
+                    array('name' => $name, 'value' => $value),
+                    array('id', $row->id)
+                );
+            } else {
+                $row = $exProfileModel->createRow(array(
+                    'uid' => $uid,
+                    'name' => $name,
+                    'value' => $value
+                ));
+                $row->save();
+            }
+        }
+        return false;
     }
 
     /**
@@ -341,7 +427,6 @@ class Api extends AbstractApi
         }
 
     }
-
 
     /**
      * Set user role

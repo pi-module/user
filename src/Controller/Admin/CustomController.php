@@ -83,6 +83,12 @@ class CustomController extends ActionController
 
             $form = $this->getForm('registerComplete', $configs['item']);
             $form->setGroups($groups);
+
+            // Set profile field
+            $categoryList = $configs['category'];
+            $this->setProfileCategory($categoryList);
+            $this->setProfile_field($configs['item']);
+
         }
         $this->view()->assign(array(
             'form' => $form,
@@ -103,4 +109,98 @@ class CustomController extends ActionController
         return $form;
     }
 
+    /**
+     * Get table field
+     *
+     * @param $tableName
+     * @return array
+     */
+    protected function getTableColumsName($tableName)
+    {
+
+        $rowset = $this->getModel($tableName)->getColumnsName();
+        foreach ($rowset as $row) {
+            $result[] = $row['name'];
+        }
+        return $result;
+    }
+
+    /**
+     * Get category map from custom config
+     *
+     * @param $items
+     * @return array
+     */
+    protected function getCategoryMap($items)
+    {
+        foreach ($items as $item) {
+            $category[$item['element']['name']] = $item['category'];
+        }
+
+        return $category;
+    }
+
+    /**
+     * Set profile category from custom form config
+     *
+     * @param $category
+     */
+    protected function setProfileCategory($category)
+    {
+        if ($category) {
+            $profileCategoryModel = $this->getModel('profile_category');
+            foreach ($category as $item) {
+                $row = $profileCategoryModel->find($item['name'], 'name');
+                if (!$row) {
+                    // Add profile category.
+                    $data = array(
+                        'name'  => $item['name'],
+                        'title' => $item['title'],
+                    );
+
+                    $row = $profileCategoryModel->createRow($data);
+                    $result = $row->save();
+                } else {
+                    // Update profile category
+                    $row->name  = $item['name'];
+                    $row->title = $item['title'];
+                    $row->save();
+                }
+            }
+        }
+    }
+
+    /**
+     * Set profile field item from custom  form config
+     *
+     * @param $config
+     */
+    protected function setProfile_field($config)
+    {
+        $categoryMap = $this->getCategoryMap($config);
+        $profile_fieldModel = $this->getModel('profile_field');
+        $module = $this->getModule();
+
+        foreach ($categoryMap as $name => $category) {
+            $select = $profile_fieldModel->select()->where(array('name' => $name, 'module' => $module));
+            $row = $profile_fieldModel->selectWith($select)->current();
+
+            if (!$row) {
+                // Insert profile field
+                $data = array(
+                    'module'   => $this->getModule(),
+                    'name'     => $name,
+                    'category' => $category,
+                );
+
+                $row = $profile_fieldModel->createRow($data);
+                $row->save();
+            } else {
+                // Update
+                $row->name = $name;
+                $row->category = $category;
+                $row->save();
+            }
+        }
+    }
 }
