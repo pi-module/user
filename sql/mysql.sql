@@ -40,7 +40,7 @@ CREATE TABLE `{extend_profile}` (
   `value`      text,
 
   PRIMARY KEY (`id`),
-  unique KEY `name` (`name`)
+  unique KEY `uid_name` (`uid`, `name`)
 );
 
 #Entity meta for user education

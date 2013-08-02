@@ -103,11 +103,10 @@ class LoginController extends ActionController
 
             // Bind account
             Pi::service('user')->bind($result->getIdentity(), 'identity');
-
-            if (empty($values['redirect'])) {
+            if (empty($value['redirect'])) {
                 $redirect = array('route' => 'home');
             } else {
-                $redirect = urldecode($values['redirect']);
+                $redirect = urldecode($value['redirect']);
             }
             $this->jump($redirect, __('You have logged in successfully.'), 2);
         }
