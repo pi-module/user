@@ -41,7 +41,6 @@ class Api extends AbstractApi
         'id',
         'identity',
         'email',
-        'status',
         'credential',
         'salt',
     );
@@ -371,7 +370,7 @@ class Api extends AbstractApi
         $uid = $exProfile['uid'];
         unset($exProfile['uid']);
 
-        $exProfileModel = $this->getModel('extend_profile');
+        $exProfileModel = Pi::model('extend_profile', $this->module);
 
         foreach ($exProfile as $name => $value) {
             $select = $exProfileModel->select()->where(array('uid' => $uid, 'name' => $name));
