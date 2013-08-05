@@ -80,7 +80,6 @@ class RegisterController extends ActionController
                 }
 
                 $values['role'] = Acl::MEMBER;
-                $values['status'] = 0;
 
                 // Create user.
                 $result = Pi::service('api')->user->addUser($values);
@@ -140,9 +139,9 @@ class RegisterController extends ActionController
                 $current = time();
                 if ($current < $expire) {
                     // User not activity.
-                    if (0 == $userRow->status || 2 == $userRow->status) {
+                    if (0 == $userRow->active) {
                         // Active user
-                        $userRow->status = $userRow->status + 1;
+                        $userRow->active = 1;
                         $userRow->save();
                     }
 

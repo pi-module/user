@@ -9,7 +9,11 @@ CREATE TABLE `{account}` (
   `credential`      varchar(255)    NOT NULL default '',    # Credential hash
   `salt`            varchar(255)    NOT NULL default '',    # Hash salt
   `email`           varchar(64)     NOT NULL,
-  `status`          smallint(3)     unsigned NOT NULL default '0',
+  `active`          tinyint(1)      unsigned NOT NULL default '0',
+  `ban`             tinyint(1)      unsigned NOT NULL default '0',
+  `visible`         tinyint(1)      unsigned NOT NULL default '1',
+
+
 
   PRIMARY KEY  (`id`),
   UNIQUE  KEY `identity` (`identity`),
