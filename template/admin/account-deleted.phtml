@@ -1,0 +1,71 @@
+<?php
+$this->css($this->assetModule('script/user-ui.css'));
+?>
+<ul class="nav nav-tabs">
+    <li class="">
+        <a href="<?php echo $this->url('admin', array('controller' => 'account', 'action' => 'index'));?>">
+            <?php _e('User');?>
+        </a>
+    </li>
+    <li class="">
+        <a href="<?php echo $this->url('admin', array('controller' => 'account', 'action' => 'pending'));?>">
+            <?php _e('Pending');?>
+        </a>
+    </li>
+    <li class="">
+        <a href="<?php echo $this->url('admin', array('controller' => 'account', 'action' => 'banned'));?>">
+            <?php _e('Banned');?>
+        </a>
+    </li>
+    <li class="active">
+        <a href="<?php echo $this->url('admin', array('controller' => 'account', 'action' => 'deleted'));?>">
+            <?php _e('Deleted');?>
+        </a>
+    </li>
+    <li class="">
+        <a href="<?php echo $this->url('admin', array('controller' => 'account', 'action' => 'add.user'));?>">
+            <?php _e('Add user');?>
+        </a>
+    </li>
+</ul>
+
+<?php if ($users) {?>
+<table class="table table-striped">
+    <tbody>
+    <tr>
+        <th><?php _e('UID');?></th>
+        <th><?php _e('Username');?></th>
+        <th><?php _e('Email');?></th>
+        <th><?php _e('User role');?></th>
+        <th><?php _e('Staff role');?></th>
+        <th><?php _e('Register ip');?></th>
+        <th><?php _e('Register time');?></th>
+    </tr>
+    <?php foreach ($users as $id => $user) { ?>
+    <tr>
+        <td>
+            <?php echo $this->escape($user['id']);?>
+        </td>
+        <td>
+            <?php echo $this->escape($user['identity']);?>
+            <div class="row-actions">
+                <a href="<?php echo $this->url('admin', array('controller' => 'account','action' => 'clear', 'id' => $user['id'])); ?>" title="<?php _e('Clear'); ?>"><?php _e('Clear'); ?></a>
+            </div>
+        </td>
+        <td><?php echo $this->escape($user['email']); ?></td>
+        <td><?php echo $this->escape($user['role']); ?></td>
+        <td><?php echo $this->escape($user['role_staff']); ?></td>
+        <td><?php echo $this->escape($user['register_ip']); ?></td>
+        <td><?php echo $this->escape(_date($user['time_register'])); ?></td>
+    </tr>
+        <?php } ?>
+    </tbody>
+</table>
+<?php echo $this->paginationControl($paginator, 'Sliding', 'paginator.phtml'); ?>
+<div>
+    <a class="btn btn-large btn-danger" href="<?php echo $this->url('admin', array('controller' => 'account', 'action' => 'clear'));?>"><?php _e('Clear all');?></a>
+</div>
+<?php } else { ?>
+
+<?php }?>
+
