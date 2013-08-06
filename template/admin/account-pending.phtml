@@ -3,12 +3,12 @@ $this->css($this->assetModule('script/user-ui.css'));
 $this->jQuery();
 ?>
 <ul class="nav nav-tabs">
-    <li class="active">
+    <li class="">
         <a href="<?php echo $this->url('admin', array('controller' => 'account', 'action' => 'index'));?>">
             <?php _e('User');?>
         </a>
     </li>
-    <li class="">
+    <li class="active">
         <a href="<?php echo $this->url('admin', array('controller' => 'account', 'action' => 'pending'));?>">
             <?php _e('Pending');?>
         </a>
@@ -19,19 +19,19 @@ $this->jQuery();
         </a>
     </li>
     <li class="">
-        <a href="<?php echo $this->url('admin', array('controller' => 'custom', 'action' => 'profile.edit'));?>">
+        <a href="<?php echo $this->url('admin', array('controller' => 'custom', 'action' => 'deleted'));?>">
             <?php _e('Deleted');?>
         </a>
     </li>
     <li class="">
-        <a href="<?php echo $this->url('admin', array('controller' => 'custom', 'action' => 'profile.edit'));?>">
+        <a href="<?php echo $this->url('admin', array('controller' => 'custom', 'action' => 'add.user'));?>">
             <?php _e('Add user');?>
         </a>
     </li>
 </ul>
 <form method="post" id="account" action="<?php echo $this->url('admin', array('controller' => 'account', 'action' => 'manage'))?>" >
-<table class="table table-striped">
-    <tbody>
+    <table class="table table-striped">
+        <tbody>
         <tr>
             <th><?php _e('UID');?></th>
             <th><?php _e('Username');?></th>
@@ -50,11 +50,7 @@ $this->jQuery();
             <td>
                 <?php echo $this->escape($user['identity']);?>
                 <div class="row-actions">
-                    <a href="<?php echo $this->url('', array('action' => 'edit', 'id' => $user['id'])); ?>" title="<?php _e('Edit'); ?>"><?php _e('Edit'); ?></a>
-                    <span class="divider">|</span>
-                    <a href="<?php echo $this->url('', array('action' => 'role', 'id' => $user['id'])); ?>" title="<?php _e('Role'); ?>"><?php _e('Role'); ?></a>
-                    <span class="divider">|</span>
-                    <a href="<?php echo $this->url('', array('action' => 'password', 'id' => $user['id'])); ?>" title="<?php _e('Password'); ?>"><?php _e('Password'); ?></a>
+                    <a href="<?php echo $this->url('', array('action' => 'active', 'id' => $user['id'])); ?>" title="<?php _e('Active'); ?>"><?php _e('Active'); ?></a>
                     <span class="divider">|</span>
                     <a href="<?php echo $this->url('', array('action' => 'ban', 'id' => $user['id'])); ?>" title="<?php _e('Ban'); ?>"><?php _e('Ban'); ?></a>
                     <span class="divider">|</span>
@@ -67,22 +63,23 @@ $this->jQuery();
             <td><?php echo $this->escape($user['register_ip']); ?></td>
             <td><?php echo $this->escape(_date($user['time_register'])); ?></td>
         </tr>
-        <?php } ?>
-    </tbody>
-</table>
-<?php if ($users) { ?>
-<div>
-    <input type="checkbox" name="check-all"><span>&nbsp;&nbsp;&nbsp;</span><span><?php _e('Select all');?></span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-    <select id="operate-select">
-        <option value="operation"><?php _e('Operation'); ?></option>
-        <option value="ban"><?php _e('Ban'); ?></option>
-        <option value="delete"><?php _e('Delete'); ?></option>
-        <option value="role"><?php _e('Assign role'); ?></option>
-    </select>
-</div>
-<?php } ?>
-<input type="hidden" name="type">
-<input type="hidden" name="ids">
+            <?php } ?>
+        </tbody>
+    </table>
+    <?php if ($users) {?>
+    <div>
+        <input type="checkbox" name="check-all"><span>&nbsp;&nbsp;&nbsp;</span><span><?php _e('Select all');?></span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        <select id="operate-select">
+            <option value="operation"><?php _e('Operation'); ?></option>
+            <option value="active"><?php _e('Active'); ?></option>
+            <option value="ban"><?php _e('Ban'); ?></option>
+            <option value="delete"><?php _e('Delete'); ?></option>
+        </select>
+    </div>
+    <?php } ?>
+    <input type="hidden" name="type">
+    <input type="hidden" name="ids">
+    <input type="hidden" name="redirect" value="<?php echo $this->url('admin', array('controller' => 'account', 'action' => 'pending'));?>">
 </form>
 <?php echo $this->paginationControl($paginator, 'Sliding', 'paginator.phtml'); ?>
 
@@ -103,7 +100,7 @@ $this->jQuery();
                     ids+=$(this).val()+',';
                 });
 
-                if(ids  && confirm('Sure ' + $(this).val() + '?')) {
+                if(ids && confirm('Sure ' + $(this).val() + '?')) {
                     $("[name='type']").val($(this).val());
                     $("[name='ids']").val(ids);
                     $("#account").submit();
