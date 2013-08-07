@@ -28,7 +28,9 @@ $this->css($this->assetModule('script/user-ui.css'));
         </a>
     </li>
 </ul>
-
+<?php if (!$status) { ?>
+    <div class="alert alert-error"><?php _e('Error occur'); ?></div>
+<?php } ?>
 <?php if ($users) {?>
 <table class="table table-striped">
     <tbody>
