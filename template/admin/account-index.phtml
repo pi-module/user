@@ -51,11 +51,11 @@ $this->jQuery();
                 <?php echo $this->escape($user['identity']);?>
                 <?php $redirect = urlencode($this->url('admin', array('controller' => 'account', 'action' => 'index'))); ?>
                 <div class="row-actions">
-                    <a href="<?php echo $this->url('', array('action' => 'edit', 'id' => $user['id'])); ?>" title="<?php _e('Edit'); ?>"><?php _e('Edit'); ?></a>
+                    <a href="<?php echo $this->url('', array('action' => 'edit', 'id' => $user['id'], 'redirect' => $redirect)); ?>" title="<?php _e('Edit'); ?>"><?php _e('Edit'); ?></a>
                     <span class="divider">|</span>
-                    <a href="<?php echo $this->url('', array('action' => 'role', 'id' => $user['id'])); ?>" title="<?php _e('Role'); ?>"><?php _e('Role'); ?></a>
+                    <a href="<?php echo $this->url('', array('action' => 'role', 'id' => $user['id'], 'redirect' => $redirect)); ?>" title="<?php _e('Role'); ?>"><?php _e('Role'); ?></a>
                     <span class="divider">|</span>
-                    <a href="<?php echo $this->url('', array('action' => 'password', 'id' => $user['id'])); ?>" title="<?php _e('Password'); ?>"><?php _e('Password'); ?></a>
+                    <a href="<?php echo $this->url('', array('action' => 'password', 'id' => $user['id'], 'redirect' => $redirect)); ?>" title="<?php _e('Password'); ?>"><?php _e('Password'); ?></a>
                     <span class="divider">|</span>
                     <a href="<?php echo $this->url('', array('action' => 'ban', 'id' => $user['id'], 'redirect' => $redirect)); ?>" title="<?php _e('Ban'); ?>"><?php _e('Ban'); ?></a>
                     <span class="divider">|</span>

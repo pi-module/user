@@ -38,27 +38,36 @@ class RegisterController extends ActionController
         // Get custom configs from config file.
         $configFile = sprintf('%s/extra/%s/config/custom.register.form.php', Pi::path('usr'), $this->getModule());
         $configs = include $configFile;
-        $groups = array();
-        foreach ($configs['category'] as $category) {
-            $groups[$category['name']] = array(
-                'label'    => $category['title'],
-                'elements' => array(),
-            );
+
+        $baseColumns = $this->getBaseFieldColumns();
+        $formElement = array();
+        foreach ($configs as $config) {
+            if (isset($config['name'])) {
+                $row = $this->getModel('profile_config')->find($config['name'], 'name');
+                if ($row) {
+                    $formElement[] = array(
+                        'element' => unserialize($row->element),
+                        'filter'  => $row->filter ? unserialize($row->filter) : array(),
+
+                    );
+                }
+            } elseif (isset($config['element']) && isset($config['filter'])) {
+                if (in_array($config['element']['name'], $baseColumns)) {
+                    $formElement[] = $config;
+                }
+            }
         }
 
-        foreach ($configs['item'] as $item) {
-            $groups[$item['category']]['elements'][] = $item['element']['name'];
+        if (!empty($formElement)) {
+            $action = $this->url('default', array('controller' => 'register', 'action' => 'index'));
+            $form = $this->getForm('register', $formElement, $action);
         }
-
-        $action = $this->url('default', array('controller' => 'register', 'action' => 'index'));
-        $form = $this->getForm('register', $configs['item'], $action);
-        $form->setGroups($groups);
 
         if ($this->request->isPost()) {
             // Process register request
             $post = $this->request->getPost();
 
-            foreach ($configs['item'] as $item) {
+            foreach ($formElement as $item) {
                 $filters[] = $item['filter'];
             }
 
@@ -169,34 +178,38 @@ class RegisterController extends ActionController
         if (!$uid) {
             $this->redirect('default', array('controller' => 'login', 'action' => 'index', 'redirect' => $redirect));
         }
-        // Get custom configs from config file.
+
         $configFile = sprintf('%s/extra/%s/config/custom.register.complete.form.php', Pi::path('usr'), $this->getModule());
         $configs = include $configFile;
-        if (!empty($configs)) {
+        $baseColumns = $this->getBaseFieldColumns();
+        $formElement = array();
+        foreach ($configs as $config) {
+            if (isset($config['name'])) {
+                $row = $this->getModel('profile_config')->find($config['name'], 'name');
+                if ($row) {
+                    $formElement[] = array(
+                        'element' => unserialize($row->element),
+                        'filter'  => $row->filter ? unserialize($row->filter) : array(),
 
-            // Get group.
-            $groups = array();
-            foreach ($configs['category'] as $category) {
-                $groups[$category['name']] = array(
-                    'label'    => $category['title'],
-                    'elements' => array(),
-                );
+                    );
+                }
+            } elseif (isset($config['element']) && isset($config['filter'])) {
+                if (in_array($config['element']['name'], $baseColumns)) {
+                    $formElement[] = $config;
+                }
             }
+        }
 
-            foreach ($configs['item'] as $item) {
-                $groups[$item['category']]['elements'][] = $item['element']['name'];
-            }
-
+        if (!empty($formElement)) {
             $action = $this->url('default', array('controller' => 'register', 'action' => 'complete'));
-            $form = $this->getForm('registerComplete', $configs['item'], $action);
-            $form->setGroups($groups);
+            $form = $this->getForm('register.complete', $formElement, $action);
         }
 
         if ($this->request->isPost()) {
             $post = $this->request->getPost();
 
             // Get custom filter
-            foreach ($configs['item'] as $item) {
+            foreach ($formElement as $item) {
                 $filters[] = $item['filter'];
             }
 
@@ -237,14 +250,16 @@ class RegisterController extends ActionController
                 }
 
                 // Set user data
-                $userDataRow = $this->getModule('user_data')->find($uid, 'uid');
+                $userDataRow = $this->getModel('user_data')->find($uid, 'uid');
                 if ($userDataRow) {
                     $userDataRow->time_update = time();
                     $userDataRow->save();
                 }
 
                 // Redirect profile page
-                $this->redirect($this->url('default', array('controller' => 'profile', 'action' =>'index')));
+                //$this->redirect()->toUrl($this->url('default', array('controller' => 'profile', 'action' =>'index')));
+                //$this->redirect()->toRoute();
+                $this->jump(array('controller' => 'profile', 'action' => 'index'), __('Complete successfully'));
             }
         }
 
@@ -309,7 +324,6 @@ class RegisterController extends ActionController
 
         $profileModel = $this->getModel('profile');
         $row = $profileModel->find($profile['uid'], 'uid');
-
         if (!$row) {
             $row = $profileModel->createRow($profile);
             $row->save();
@@ -331,6 +345,7 @@ class RegisterController extends ActionController
      */
     protected function setExtendProfile($exProfile)
     {
+
         if (empty($exProfile)) {
             return true;
         }
@@ -343,10 +358,11 @@ class RegisterController extends ActionController
         foreach ($exProfile as $name => $value) {
             $select = $exProfileModel->select()->where(array('uid' => $uid, 'name' => $name));
             $row = $exProfileModel->selectWith($select)->current();
+
             if ($row) {
                 $exProfileModel->update(
                     array('name' => $name, 'value' => $value),
-                    array('id', $row->id)
+                    array('id'=> $row->id)
                 );
             } else {
                 $row = $exProfileModel->createRow(array(
@@ -386,5 +402,17 @@ class RegisterController extends ActionController
         }
 
         return $row->id ?: 0;
+    }
+
+    /**
+     * Get base field columns from config file
+     * @return mixed
+     */
+    protected function getBaseFieldColumns()
+    {
+        $file = sprintf('%s/extra/%s/config/base.field.columns.php', Pi::path('usr'), $this->getModule());
+        $columns = include $file;
+
+        return $columns;
     }
 }

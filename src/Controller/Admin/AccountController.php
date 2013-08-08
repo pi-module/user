@@ -277,42 +277,45 @@ class AccountController extends ActionController
         $select = $accountModel->select()->columns(array('count' => new Expression('count(*)')))->where($where);
         $count  = $accountModel->selectWith($select)->current()->count;
 
-        // Get user data
-        $model = $this->getModel('user_data');
-        $rowset = $model->select(array('uid' => array_keys($users)));
-        foreach ($rowset as $row) {
-            $users[$row->uid]['time_register'] = $row->time_register;
-            $users[$row->uid]['register_ip'] = $row->register_ip;
-        }
-
-
         if ($users) {
-            // Get user role
-            $roleList = array();
-            $model  = $this->getModel('role');
+            // Get user data
+            $model = $this->getModel('user_data');
             $rowset = $model->select(array('uid' => array_keys($users)));
             foreach ($rowset as $row) {
-                $users[$row->uid]['role'] = $row->role;
-                $roleList[$row->role] = '';
+                $users[$row->uid]['time_register'] = $row->time_register;
+                $users[$row->uid]['register_ip'] = $row->register_ip;
             }
 
-            $model  = $this->getModel('staff');
-            $rowset = $model->select(array('uid' => array_keys($users)));
-            foreach ($rowset as $row) {
-                $users[$row->uid]['role_staff'] = $row->role;
-                $roleList[$row->role] = '';
-            }
 
-            $roles = $this->getRoles();
-            foreach (array_keys($roleList) as $name) {
-                $roleList[$name] = $roles[$name];
-            }
+            if ($users) {
+                // Get user role
+                $roleList = array();
+                $model  = $this->getModel('role');
+                $rowset = $model->select(array('uid' => array_keys($users)));
+                foreach ($rowset as $row) {
+                    $users[$row->uid]['role'] = $row->role;
+                    $roleList[$row->role] = '';
+                }
 
-            foreach ($users as $id => &$user) {
-                $user['role'] = $roleList[$user['role']];
-                $user['role_staff'] = isset($user['role_staff']) ? $roleList[$user['role_staff']] : '';
+                $model  = $this->getModel('staff');
+                $rowset = $model->select(array('uid' => array_keys($users)));
+                foreach ($rowset as $row) {
+                    $users[$row->uid]['role_staff'] = $row->role;
+                    $roleList[$row->role] = '';
+                }
+
+                $roles = $this->getRoles();
+                foreach (array_keys($roleList) as $name) {
+                    $roleList[$name] = $roles[$name];
+                }
+
+                foreach ($users as $id => &$user) {
+                    $user['role'] = $roleList[$user['role']];
+                    $user['role_staff'] = isset($user['role_staff']) ? $roleList[$user['role_staff']] : '';
+                }
             }
         }
+
 
 
         // Set paginator
@@ -349,12 +352,50 @@ class AccountController extends ActionController
         $this->view()->setTemplate(false);
     }
 
+    /**
+     * Ban a user
+     *
+     * @return \Zend\Http\Response
+     */
     public function banAction()
     {
         $redirect = urldecode(_get('redirect'));
         $id       = _get('id');
         if ($redirect && $id) {
             $this->banUser(array($id));
+            return $this->redirect()->toUrl($redirect);
+        }
+        $this->view()->setTemplate(false);
+    }
+
+
+    /**
+     * Unban a user
+     *
+     * @return \Zend\Http\Response
+     */
+    public function unbanAction()
+    {
+        $redirect = urldecode(_get('redirect'));
+        $id       = _get('id');
+        if ($redirect && $id) {
+            $this->unbanUser(array($id));
+            return $this->redirect()->toUrl($redirect);
+        }
+        $this->view()->setTemplate(false);
+    }
+
+    /**
+     * Active a user
+     *
+     * @return \Zend\Http\Response
+     */
+    public function activeAction()
+    {
+        $redirect = urldecode(_get('redirect'));
+        $id       = _get('id');
+        if ($redirect && $id) {
+            $this->activeUser(array($id));
             return $this->redirect()->toUrl($redirect);
         }
         $this->view()->setTemplate(false);
@@ -447,6 +488,9 @@ class AccountController extends ActionController
         $this->view()->assign('paginator', $paginator);
     }
 
+    /**
+     * Actually delete all inform to a user
+     */
     public function clearAction()
     {
         $id = $this->params('id', '');
@@ -550,6 +594,7 @@ class AccountController extends ActionController
     public function roleAction()
     {
         $id = $this->params('id', '');
+        $redirect = urldecode($this->params('redirect', ''));
         $message = '';
 
         if (!$id) {
@@ -573,6 +618,7 @@ class AccountController extends ActionController
             $user['role_staff'] = $roleStaff->role;
         }
 
+        $user['redirect'] = $redirect;
         $form = new EditRoleForm('account', $user);
         $form->setAttribute('action', $this->url('admin', array('controller' => 'account', 'action' => 'role')));
 
@@ -584,7 +630,6 @@ class AccountController extends ActionController
 
             if ($form->isValid()) {
                 $values = $form->getData();
-
                 // Update to role
                 $rowset = $this->getModel('role')->find($values['id'], 'uid');
                 if ($rowset) {
@@ -594,10 +639,16 @@ class AccountController extends ActionController
                     // Update to staff
                     $rowset = $this->getModel('staff')->find($values['id'], 'uid');
                     if ($rowset) {
-                        $rowset->role = $values['role'];
-
+                        $rowset->role = $values['role_staff'];
+                        $rowset->save();
                         $message = __('User role saved successfully');
-                     }
+                        return $this->redirect()->toUrl($values['redirect']);
+                     } elseif ($values['staff']) {
+//                        $rowset = $this->getModel('staff')->createRow(array(
+//                            'uid' => $values['id'],
+//                            'role' => $values[];
+//                        ));
+                    }
                 } else {
                     $message = __('User role not saved');
                 }
@@ -701,7 +752,7 @@ class AccountController extends ActionController
             'status'  => 0,
             'message' => '',
         );
-        
+
     }
 
     /**

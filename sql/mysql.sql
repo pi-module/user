@@ -89,13 +89,14 @@ CREATE TABLE `{profile_field}` (
 
 #User data for user activity
 CREATE TABLE `{user_data}` (
-  `id`            int(10)               unsigned NOT NULL auto_increment,
-  `uid`           int(10)               unsigned NOT NULL,
-  `time_update`   int(10)               unsigned NOT NULL default '0',
-  `time_register` int(10)               unsigned NOT NULL default '0',
-  `time_last_login` int(10)             unsigned NOT NULL default '0',
-  `last_login_ip` varchar(15)           NOT NULL default '',
-  `register_ip`   varchar(15)           NOT NULL default '',
+  `id`               int(10)            unsigned NOT NULL auto_increment,
+  `uid`              int(10)            unsigned NOT NULL,
+  `time_update`      int(10)            unsigned NOT NULL default '0',
+  `time_register`    int(10)            unsigned NOT NULL default '0',
+  `time_last_login`  int(10)            unsigned NOT NULL default '0',
+  `last_login_ip`    varchar(15)        NOT NULL default '',
+  `register_ip`      varchar(15)        NOT NULL default '',
+  `complete_profile` tinyint(1)         NOT NULL default '0',
 
   PRIMARY KEY (`id`),
   UNIQUE  KEY `uid` (`uid`)
@@ -187,7 +188,6 @@ CREATE TABLE `{role}` (
   UNIQUE KEY `uid` (`uid`)
 );
 
-
 # user-role links for staff
 CREATE TABLE `{staff}` (
   `id`              int(10)         unsigned    NOT NULL    auto_increment,
@@ -196,4 +196,16 @@ CREATE TABLE `{staff}` (
 
   PRIMARY KEY  (`id`),
   UNIQUE KEY `uid` (`uid`)
+);
+
+# user-profile-field config
+CREATE TABLE `{profile_config}` (
+  `id`              int(10)         unsigned     NOT NULL     auto_increment,
+  `name`            varchar(64)     NOT NULL     default '',
+  `title`           varchar(255)    NOT NULL     default '',
+  `value`           text,
+  `element`         text,
+  `filter`          text,
+
+  PRIMARY KEY (`id`)
 );

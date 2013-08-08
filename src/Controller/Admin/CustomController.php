@@ -28,6 +28,39 @@ use Module\User\Form\CustomForm;
 class CustomController extends ActionController
 {
     /**
+     * Read profile field config and store to database
+     */
+    public function configAction()
+    {
+        $file    = sprintf('%s/extra/%s/config/profile.field.php', Pi::path('usr'), $this->getModule());
+        $configs = include $file;
+        $field = array();
+        if (!empty($configs)) {
+            foreach ($configs as $config) {
+                if ($config['element']['name']) {
+                    $name = $config['element']['name'];
+                    $field[$name]['element'] = serialize($config['element']);
+                    $field[$name]['filter']  = serialize($config['filter']);
+                    $field[$name]['name']    = $config['element']['name'];
+                    $field[$name]['title']   = $config['element']['options']['label'];
+                    $field[$name]['value']   = isset($config['element']['attribute']['value']) ?: '';
+                }
+            }
+        }
+
+        // Insert to database
+        if (!empty($field)) {
+            $model = $this->getModel('profile_config');
+            foreach ($field as $data) {
+                $row = $model->createRow($data);
+                $row->save();
+            }
+        }
+
+        $this->view()->setTemplate(false);
+    }
+
+    /**
      * Custom register form preview.
      */
     public function registerAction()
@@ -36,28 +69,34 @@ class CustomController extends ActionController
         $configFile = sprintf('%s/extra/%s/config/custom.register.form.php', Pi::path('usr'), $this->getModule());
         $configs = include $configFile;
 
-        if (!empty($configs)) {
+        $baseColumns = $this->getBaseFieldColumns();
+        $formElement = array();
+        foreach ($configs as $config) {
+            if (isset($config['name'])) {
+                $row = $this->getModel('profile_config')->find($config['name'], 'name');
+                if ($row) {
+                    $formElement[] = array(
+                        'element' => unserialize($row->element),
+                        'filter'  => $row->filter ? unserialize($row->filter) : array(),
 
-            // Get group.
-            $groups = array();
-            foreach ($configs['category'] as $category) {
-                $groups[$category['name']] = array(
-                    'label'    => $category['title'],
-                    'elements' => array(),
-                );
+                    );
+                }
+            } elseif (isset($config['element']) && isset($config['filter'])) {
+                if (in_array($config['element']['name'], $baseColumns)) {
+                    $formElement[] = $config;
+                }
             }
-
-            foreach ($configs['item'] as $item) {
-                $groups[$item['category']]['elements'][] = $item['element']['name'];
-            }
-
-            $form = $this->getForm('register', $configs['item']);
-            $form->setGroups($groups);
         }
-        $this->view()->assign(array(
-            'form' => $form,
-            'type' => 'register',
-        ));
+
+        if (!empty($formElement)) {
+            $form = $this->getForm('register', $formElement);
+
+            $this->view()->assign(array(
+                'form' => $form,
+                'type' => 'register',
+            ));
+        }
+
         $this->view()->setTemplate('custom-form');
     }
 
@@ -66,34 +105,33 @@ class CustomController extends ActionController
         // Get custom configs from config file.
         $configFile = sprintf('%s/extra/%s/config/custom.register.complete.form.php', Pi::path('usr'), $this->getModule());
         $configs = include $configFile;
-        if (!empty($configs)) {
+        $baseColumns = $this->getBaseFieldColumns();
+        $formElement = array();
+        foreach ($configs as $config) {
+            if (isset($config['name'])) {
+                $row = $this->getModel('profile_config')->find($config['name'], 'name');
+                if ($row) {
+                    $formElement[] = array(
+                        'element' => unserialize($row->element),
+                        'filter'  => $row->filter ? unserialize($row->filter) : array(),
 
-            // Get group.
-            $groups = array();
-            foreach ($configs['category'] as $category) {
-                $groups[$category['name']] = array(
-                    'label'    => $category['title'],
-                    'elements' => array(),
-                );
+                    );
+                }
+            } elseif (isset($config['element']) && isset($config['filter'])) {
+                if (in_array($config['element']['name'], $baseColumns)) {
+                    $formElement[] = $config;
+                }
             }
-
-            foreach ($configs['item'] as $item) {
-                $groups[$item['category']]['elements'][] = $item['element']['name'];
-            }
-
-            $form = $this->getForm('registerComplete', $configs['item']);
-            $form->setGroups($groups);
-
-            // Set profile field
-            $categoryList = $configs['category'];
-            $this->setProfileCategory($categoryList);
-            $this->setProfile_field($configs['item']);
-
         }
-        $this->view()->assign(array(
-            'form' => $form,
-            'type' => 'complete',
-        ));
+
+        if (!empty($formElement)) {
+            $form = $this->getForm('register.complete', $formElement);
+
+            $this->view()->assign(array(
+                'form' => $form,
+                'type' => 'complete',
+            ));
+        }
         $this->view()->setTemplate('custom-form');
     }
 
@@ -110,97 +148,14 @@ class CustomController extends ActionController
     }
 
     /**
-     * Get table field
-     *
-     * @param $tableName
-     * @return array
+     * Get base field columns from config file
+     * @return mixed
      */
-    protected function getTableColumsName($tableName)
+    protected function getBaseFieldColumns()
     {
+        $file = sprintf('%s/extra/%s/config/base.field.columns.php', Pi::path('usr'), $this->getModule());
+        $columns = include $file;
 
-        $rowset = $this->getModel($tableName)->getColumnsName();
-        foreach ($rowset as $row) {
-            $result[] = $row['name'];
-        }
-        return $result;
-    }
-
-    /**
-     * Get category map from custom config
-     *
-     * @param $items
-     * @return array
-     */
-    protected function getCategoryMap($items)
-    {
-        foreach ($items as $item) {
-            $category[$item['element']['name']] = $item['category'];
-        }
-
-        return $category;
-    }
-
-    /**
-     * Set profile category from custom form config
-     *
-     * @param $category
-     */
-    protected function setProfileCategory($category)
-    {
-        if ($category) {
-            $profileCategoryModel = $this->getModel('profile_category');
-            foreach ($category as $item) {
-                $row = $profileCategoryModel->find($item['name'], 'name');
-                if (!$row) {
-                    // Add profile category.
-                    $data = array(
-                        'name'  => $item['name'],
-                        'title' => $item['title'],
-                    );
-
-                    $row = $profileCategoryModel->createRow($data);
-                    $result = $row->save();
-                } else {
-                    // Update profile category
-                    $row->name  = $item['name'];
-                    $row->title = $item['title'];
-                    $row->save();
-                }
-            }
-        }
-    }
-
-    /**
-     * Set profile field item from custom  form config
-     *
-     * @param $config
-     */
-    protected function setProfile_field($config)
-    {
-        $categoryMap = $this->getCategoryMap($config);
-        $profile_fieldModel = $this->getModel('profile_field');
-        $module = $this->getModule();
-
-        foreach ($categoryMap as $name => $category) {
-            $select = $profile_fieldModel->select()->where(array('name' => $name, 'module' => $module));
-            $row = $profile_fieldModel->selectWith($select)->current();
-
-            if (!$row) {
-                // Insert profile field
-                $data = array(
-                    'module'   => $this->getModule(),
-                    'name'     => $name,
-                    'category' => $category,
-                );
-
-                $row = $profile_fieldModel->createRow($data);
-                $row->save();
-            } else {
-                // Update
-                $row->name = $name;
-                $row->category = $category;
-                $row->save();
-            }
-        }
+        return $columns;
     }
 }
