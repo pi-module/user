@@ -58,6 +58,7 @@ return array(
                     'privacy_field'     => 'table',
                     'role'              => 'table',
                     'staff'             => 'table',
+                    'profile_config'    => 'table',
                 ),
             ),
            'navigation'    => 'navigation.php',

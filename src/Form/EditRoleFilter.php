@@ -33,12 +33,12 @@ class EditRoleFilter extends InputFilter
 
         $this->add(array(
             'name'    => 'role_staff',
-            'require' => false,
+            'required' => false,
         ));
 
         $this->add(array(
             'name'    => 'id',
-            'require' => false,
+            'required' => false,
         ));
     }
 }
