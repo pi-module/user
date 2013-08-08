@@ -45,7 +45,7 @@ class EditRoleForm extends BaseFrom
             'options' => array(
                 'label' => __('User role'),
             ),
-            'attribute' => array(
+            'attributes' => array(
                 'value' => $this->user['role'],
             ),
         ));
@@ -73,6 +73,14 @@ class EditRoleForm extends BaseFrom
             'attributes' => array(
                 'type' => 'hidden',
                 'value' => $this->user['id'],
+            ),
+        ));
+
+        $this->add(array(
+            'name'       => 'redirect',
+            'attributes' => array(
+                'type'  => 'hidden',
+                'value' => $this->user['redirect'],
             ),
         ));
         $this->add(array(
