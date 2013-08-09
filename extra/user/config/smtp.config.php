@@ -1,12 +1,11 @@
 <?php
-// config smtp
-//return array(
-//    'name'              => 'smtpname',
-//    'host'              => '',
-//    'port'              => ,
-//    'connection_class'  => 'login',
-//    'connection_config' => array(
-//        'username' => '',
-//        'password' => '',
-//    ),
-//);
+return array(
+    'name'              => 'smtp',
+    'host'              => '',
+    'port'              => 25,
+    'connection_class'  => 'login',
+    'connection_config' => array(
+        'username' => '',
+        'password' => '',
+    ),
+);
