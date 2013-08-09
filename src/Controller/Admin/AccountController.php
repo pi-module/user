@@ -24,6 +24,8 @@ use Pi;
 use Pi\Paginator\Paginator;
 use Module\User\Form\EditRoleForm;
 use Module\User\Form\EditRoleFilter;
+use Module\User\Form\EditPasswordForm;
+use Module\User\Form\EditPasswordFilter;
 
 class AccountController extends ActionController
 {
@@ -250,8 +252,8 @@ class AccountController extends ActionController
      */
     public function bannedAction()
     {
-        $page = $this->params('p', 1);
-        $limit = 5;
+        $page   = $this->params('p', 1);
+        $limit  = 5;
         $offset = (int) ($page -1) * $limit;
 
         // Get usr list
@@ -260,7 +262,7 @@ class AccountController extends ActionController
             'ban'     => 1,
             'visible' => 1,
         );
-        $select = $accountModel->select()->where($where)->order('id')->offset($offset)->limit($limit);
+        $select     = $accountModel->select()->where($where)->order('id')->offset($offset)->limit($limit);
         $accountRow = $accountModel->selectWith($select);
 
         $users = array();
@@ -406,8 +408,8 @@ class AccountController extends ActionController
      */
     public function deletedAction()
     {
-        $page = $this->params('p', 1);
-        $limit = 5;
+        $page   = $this->params('p', 1);
+        $limit  = 5;
         $offset = (int) ($page -1) * $limit;
         $status = $this->params('status', 1);
 
@@ -622,6 +624,7 @@ class AccountController extends ActionController
         $form = new EditRoleForm('account', $user);
         $form->setAttribute('action', $this->url('admin', array('controller' => 'account', 'action' => 'role')));
         $rowset = $this->getModel('account')->find($id, 'id');
+        $username = $rowset->identity;
 
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
@@ -663,17 +666,55 @@ class AccountController extends ActionController
 
         $title = __('Edit member');
         $this->view()->assign(array(
-            'title'   => $title,
-            'form'    => $form,
-            'message' => $message,
+            'title'    => $title,
+            'form'     => $form,
+            'message'  => $message,
+            'username' => $username,
         ));
     }
 
-//    public function editAction()
-//    {
-//        $id
-//
-//    }
+    /**
+     * Edit user password.
+     */
+    public function passwordAction()
+    {
+        $id       = $this->params('id', '');
+        $redirect = urldecode($this->params('redirect', ''));
+
+        if (!$id || !$redirect) {
+            $this->jump(array('action' => 'index'), __('Edit password error occurred'));
+        }
+
+        $rowset = $this->getModel('account')->find($id, 'id');
+        if (!$rowset) {
+            $this->jump(array(), __('The user is not found'));
+        }
+
+        $username = $rowset->identity;
+        $form = new EditPasswordForm('edit-password', array('id' => $id));
+
+        if ($this->request->isPost()) {
+            $data = $this->request->getPost();
+            $form->setData($data);
+            $form->setInputFilter(new EditPasswordFilter());
+            if ($form->isValid()) {
+                $value              = $form->getData();
+                $salt               = uniqid(mt_rand(), 1);
+                $credential         = $value['credential'];
+                $hashCredential     = Pi::service('api')->user->transformCredential($credential, $salt);
+                $rowset->credential = $hashCredential;
+                $rowset->salt       = $salt;
+                $rowset->save();
+                $this->jump(array('controller' => 'account'), __('Edit password successfully'), 2);
+            }
+        }
+
+        $this->view()->assign(array(
+            'form'     => $form,
+            'username' => $username,
+            'title'    => __('Edit password'),
+        ));
+    }
 
     /**
      * Ban a user
