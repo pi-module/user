@@ -621,6 +621,7 @@ class AccountController extends ActionController
         $user['redirect'] = $redirect;
         $form = new EditRoleForm('account', $user);
         $form->setAttribute('action', $this->url('admin', array('controller' => 'account', 'action' => 'role')));
+        $rowset = $this->getModel('account')->find($id, 'id');
 
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
@@ -641,14 +642,15 @@ class AccountController extends ActionController
                     if ($rowset) {
                         $rowset->role = $values['role_staff'];
                         $rowset->save();
-                        $message = __('User role saved successfully');
-                        return $this->redirect()->toUrl($values['redirect']);
-                     } elseif ($values['staff']) {
-//                        $rowset = $this->getModel('staff')->createRow(array(
-//                            'uid' => $values['id'],
-//                            'role' => $values[];
-//                        ));
+                     } elseif ($values['role_staff']) {
+                        $rowset = $this->getModel('staff')->createRow(array(
+                            'uid' => $values['id'],
+                            'role' => $values['role_staff'],
+                        ));
+                        $rowset->save();
                     }
+
+                    return $this->redirect()->toUrl($values['redirect']);
                 } else {
                     $message = __('User role not saved');
                 }

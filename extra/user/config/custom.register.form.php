@@ -16,25 +16,9 @@
  * @package         Module\User
  */
 
-$config = array();
-
-// Config register form category
-$config['category'] = array(
-    // General information.
-    array(
-        'name'    => 'general',
-        'title'   => _t('General'),
-    ),
-
-    // You can define more category
-);
-
 // Config register form element
-$config['item'] = array(
-
-    // Config username.
-    array(
-        // Set element.
+$config = array(
+    'identity' => array(
         'element'  => array(
             'name'    => 'identity',
             'options' => array(
@@ -74,13 +58,9 @@ $config['item'] = array(
                 )),
             ),
         ),
-
-        // Set element category.
-        'category' => 'general',
     ),
 
-    // Config Email.
-    array(
+    'email' => array(
         'element' => array(
             'name'          => 'email',
             'options'       => array(
@@ -114,12 +94,9 @@ $config['item'] = array(
                 )),
             ),
         ),
-
-        'category' => 'general',
     ),
 
-    // Custom password form element.
-    array(
+    'credential' => array(
         'element' => array(
             'name'          => 'credential',
             'options'       => array(
@@ -149,12 +126,9 @@ $config['item'] = array(
                 ),
             ),
         ),
-
-        'category' => 'general',
     ),
 
-    // Custom password-confirm form element.
-    array(
+    'credential-confirm' => array(
         'element' => array(
             'name'          => 'credential-confirm',
             'options'       => array(
@@ -183,12 +157,9 @@ $config['item'] = array(
                 ),
             ),
         ),
-
-        'category' => 'general',
     ),
 
-    // Custom captcha
-    array(
+    'captcha' => array(
         'element' => array(
             'name'          => 'captcha',
             'type'          => 'captcha',
@@ -199,8 +170,8 @@ $config['item'] = array(
             )
         ),
         'filter'  => array(),
-        'category' => 'general',
     ),
+
 );
 
 return $config;
