@@ -62,10 +62,10 @@ CREATE TABLE `{education}` (
 );
 
 #Profile category
-CREATE TABLE `{profile_category}` (
+CREATE TABLE `{profile_group}` (
   `id`         int(10)                unsigned NOT NULL auto_increment,
   `name`       varchar(64)            NOT NULL default '',
-  `title`      varchar(64)            NOT NULL default '',
+  `title`      varchar(255)            NOT NULL default '',
   `order`      smallint(5)            unsigned NOT NULL default '0',
 
   PRIMARY KEY (`id`),
@@ -73,18 +73,13 @@ CREATE TABLE `{profile_category}` (
 );
 
 #Profile field
-CREATE TABLE `{profile_field}` (
+CREATE TABLE `{profile_display}` (
   `id`         int(10)                unsigned NOT NULL auto_increment,
-  `module`     varchar(64)            NOT NULL default '',
-  `category`   varchar(64)            NOT NULL default '',
   `name`       varchar(64)            NOT NULL default '',
-  `edit`       tinyint(1)             NOT NULL default '1',
-  `search`     tinyint(1)             NOT NULL default '1',
-  `display`    tinyint(1)             NOT NULL default '1',
+  `group`      varchar(64)            NOT NULL default '',
   `order`      smallint(5)            unsigned NOT NULL default '0',
 
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`)
+  PRIMARY KEY (`id`)
 );
 
 #User data for user activity
@@ -199,13 +194,42 @@ CREATE TABLE `{staff}` (
 );
 
 # user-profile-field config
-CREATE TABLE `{profile_config}` (
+CREATE TABLE `{profile_field}` (
   `id`              int(10)         unsigned     NOT NULL     auto_increment,
   `name`            varchar(64)     NOT NULL     default '',
   `title`           varchar(255)    NOT NULL     default '',
   `value`           text,
   `element`         text,
   `filter`          text,
+  `display`         tinyint(1)      unsigned NOT NULL default '1',
+  `search`          tinyint(1)      unsigned NOT NULL default '1',
+
+  PRIMARY KEY (`id`)
+);
+
+# user-account-field config
+CREATE TABLE `{account_field}` (
+  `id`              int(10)         unsigned     NOT NULL     auto_increment,
+  `name`            varchar(64)     NOT NULL     default '',
+  `title`           varchar(255)    NOT NULL     default '',
+  `value`           text,
+  `element`         text,
+  `filter`          text,
+  `display`         tinyint(1)      unsigned NOT NULL default '1',
+  `search`          tinyint(1)      unsigned NOT NULL default '1',
+
+  PRIMARY KEY (`id`)
+);
+
+# user-component_field config
+CREATE TABLE `{component_field}` (
+  `id`              int(10)        unsigned NOT NULL auto_increment,
+  `name`            varchar(64)    NOT NULL default '',
+  `title`           varchar(255)   NOT NULL default '',
+  `columns`         text,
+  `model`           varchar(64)    NOT NULL default '',
+  `display`         tinyint(1)     unsigned NOT NULL default '1',
+  `search`          tinyint(1)     unsigned NOT NULL default '1',
 
   PRIMARY KEY (`id`)
 );
