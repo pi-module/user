@@ -15,22 +15,9 @@
  * @since           1.0
  * @package         Module\User
  */
-$config = array();
-
-// Config category
-$config['category'] = array(
-    // Basic information.
-    array(
-        'name'    => 'basic',
-        'title'   => _t('Basic information'),
-    ),
-);
-
-// Config register form element
-$config['item'] = array(
-
-    // Config full name
-    array(
+$config = array(
+    // Custom full name
+    'name' => array(
         // Set element
         'element'  => array(
             'name'    => 'name',
@@ -58,19 +45,16 @@ $config['item'] = array(
                     'name'      => 'StringLength',
                     'options'   => array(
                         'encoding'  => 'UTF-8',
-                        'min'       => 6,
+                        'min'       => 1,
                         'max'       => 25,
                     ),
                 ),
             ),
         ),
-
-        // Set element category.
-        'category' => 'basic',
     ),
 
-    // Custom gender form element
-    array(
+    // Custom gender
+    'gender' => array(
         'element' => array(
             'name'          => 'gender',
             'options'       => array(
@@ -84,18 +68,17 @@ $config['item'] = array(
                 'value'     => 'm',
             ),
             'type' => 'radio',
+
         ),
 
         'filter' => array(
             'name'          => 'gender',
             'required'      => true,
         ),
-
-        'category' => 'basic',
     ),
 
-    // Custom bio form element
-    array(
+    // Custom bio
+    'bio' =>array(
         'element' => array(
             'name'          => 'bio',
             'options'       => array(
@@ -112,12 +95,10 @@ $config['item'] = array(
             'name'     => 'bio',
             'required' => true,
         ),
-
-        'category' => 'basic',
     ),
 
-    // Custom birthday form element
-    array(
+    // Custom birthday
+    'birthday' => array(
         'element' => array(
             'name'          => 'birthday',
             'options'       => array(
@@ -133,12 +114,10 @@ $config['item'] = array(
             'name'     => 'birthday',
             'required' => true,
         ),
-
-        'category' => 'basic',
     ),
 
-    // Custom location form element
-    array(
+    // Custom location
+    'location' => array(
         'element' => array(
             'name'          => 'location',
             'options'       => array(
@@ -158,58 +137,16 @@ $config['item'] = array(
                 ),
             ),
         ),
-
-        'category' => 'basic',
     ),
 
-    // Custom street form element
-    array(
-        'element' => array(
-            'name'          => 'street',
-            'options'       => array(
-                'label' => __('Street'),
-            ),
-            'attributes'    => array(
-                'type'  => 'text',
-            )
-        ),
-
-        'filter' => array(
-            'name'          => 'street',
-            'required'      => true,
-            'filters'       => array(
-                array(
-                    'name'  => 'StringTrim',
-                ),
-            ),
-        ),
-
-        'category' => 'basic',
+    // Custom extend profile field zip
+    'zip'    => array(
+        'name' => 'zip',
     ),
 
-    // Custom zip code form element
-    array(
-        'element' => array(
-            'name'          => 'zip',
-            'options'       => array(
-                'label' => __('Zip code'),
-            ),
-            'attributes'    => array(
-                'type'  => 'text',
-            )
-        ),
-
-        'filter' => array(
-            'name'          => 'zip',
-            'required'      => true,
-            'filters'       => array(
-                array(
-                    'name'  => 'StringTrim',
-                ),
-            ),
-        ),
-
-        'category' => 'basic',
+    // Custom extend profile field street
+    'street' => array(
+        'name' => 'street'
     ),
 );
 
