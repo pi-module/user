@@ -9,11 +9,10 @@ CREATE TABLE `{account}` (
   `credential`      varchar(255)    NOT NULL default '',    # Credential hash
   `salt`            varchar(255)    NOT NULL default '',    # Hash salt
   `email`           varchar(64)     NOT NULL,
+  `name`            varchar(255)    NOT NULL default '',
   `active`          tinyint(1)      unsigned NOT NULL default '0',
   `ban`             tinyint(1)      unsigned NOT NULL default '0',
-  `visible`         tinyint(1)      unsigned NOT NULL default '1',
-
-
+  `deleted`         tinyint(1)      unsigned NOT NULL default '1',
 
   PRIMARY KEY  (`id`),
   UNIQUE  KEY `identity` (`identity`),
@@ -25,10 +24,10 @@ CREATE TABLE `{account}` (
 CREATE TABLE `{profile}` (
   `id`          int(10)                unsigned NOT NULL auto_increment,
   `uid`         int(10)                unsigned NOT NULL,
-  `name`        varchar(255)           NOT NULL default '',
+  `fullname`    varchar(255)           NOT NULL default '',
   `birthday`    int(10)                NOT NULL default '0',
   `gender`      enum('M', 'F', '')     NOT NULL default 'M',
-  `avatar`      varchar(255)           NOT NULL default '',
+  `avatar`      text,
   `bio`         text,
   `location`    varchar(255)           NOT NULL default '',
 
@@ -36,15 +35,34 @@ CREATE TABLE `{profile}` (
   UNIQUE  KEY `uid` (`uid`)
 );
 
+# Entity meta for all profile fields: account, basic profile and custom fields
+CREATE TABLE `{field}` (
+  `id`              smallint(5)     unsigned    NOT NULL    auto_increment,
+  `name`            varchar(64)     NOT NULL,
+  `module`          varchar(64)     NOT NULL default '',
+  `title`           varchar(255)    NOT NULL default '',
+  `edit`            text,           # callback options for edit
+  `filter`          text,           # callback options for output filtering
+
+  `type`            ENUM('custom', 'account', 'profile'),   # Field type, default as custom
+  `is_edit`         tinyint(1)      NOT NULL default '0',   # Is editable
+  `is_search`       tinyint(1)      NOT NULL default '0',   # Is searchable
+  `is_display`      tinyint(1)      NOT NULL default '0',   # Display on profile page
+  `active`          tinyint(1)      NOT NULL default '0',   # Is active
+
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY  `name` (`name`)
+);
+
 #Entity meta for extend profile
-CREATE TABLE `{extend_profile}` (
+CREATE TABLE `{custom}` (
   `id`         int(10)                unsigned NOT NULL auto_increment,
   `uid`        int(10)                unsigned NOT NULL,
-  `name`       varchar(64)            NOT NULL default '',
+  `field`      varchar(64)            NOT NULL default '',
   `value`      text,
 
   PRIMARY KEY (`id`),
-  unique KEY `uid_name` (`uid`, `name`)
+  unique KEY `field` (`uid`, `field`)
 );
 
 #Entity meta for user education
@@ -83,7 +101,7 @@ CREATE TABLE `{profile_display}` (
 );
 
 #User data for user activity
-CREATE TABLE `{user_data}` (
+CREATE TABLE `{user_log}` (
   `id`               int(10)            unsigned NOT NULL auto_increment,
   `uid`              int(10)            unsigned NOT NULL,
   `time_update`      int(10)            unsigned NOT NULL default '0',
@@ -97,18 +115,56 @@ CREATE TABLE `{user_data}` (
   UNIQUE  KEY `uid` (`uid`)
 );
 
-#Time line
-CREATE TABLE `{time_line}` (
-  `id`           int(10)               unsigned NOT NULL auto_increment,
-  `uid`          int(10)               unsigned NOT NULL,
-  `module`       varchar(64)           NOT NULL default '',
-  `type`         varchar(64)           NOT NULL default '',
-  `message`      text,
-  `time`         int(10)               unsigned NOT NULL default '0',
-  `visible`      tinyint(1)            NOT NULL default '0',
+# Timeline meta
+CREATE TABLE `{timeline_type}` (
+  `id`              int(10)         unsigned    NOT NULL    auto_increment,
+  `name`            varchar(64)     NOT NULL    default '',
+  `title`           varchar(255)    NOT NULL    default '',
+  `module`          varchar(64)     NOT NULL    default '',
+  `icon`            text,
 
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uid` (`uid`)
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `name` (`module`, `name`)
+);
+
+# Timeline for user activities
+CREATE TABLE `{timeline}` (
+  `id`              int(10)         unsigned    NOT NULL    auto_increment,
+  `uid`             int(10)         unsigned    NOT NULL,
+  `type`            varchar(64)     NOT NULL    default '',
+  `module`          varchar(64)     NOT NULL    default '',
+  `message`         text,
+  `link`            text,
+  `time`            int(11)         unsigned    NOT NULL,
+
+  PRIMARY KEY  (`id`)
+);
+
+CREATE TABLE `{quicklink}` (
+  `id`              int(10)         unsigned    NOT NULL    auto_increment,
+  `name`            varchar(64)     NOT NULL    default '',
+  `title`           varchar(255)    NOT NULL    default '',
+  `module`          varchar(64)     NOT NULL    default '',
+  `link`            text,
+  `icon`            text,
+  `order`           smallint(5)     unsigned    NOT NULL default '0',
+
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `name` (`module`, `name`)
+);
+
+# Activity meta
+CREATE TABLE `{activity}` (
+  `id`              int(10)         unsigned    NOT NULL    auto_increment,
+  `name`            varchar(64)     NOT NULL    default '',
+  `title`           varchar(255)    NOT NULL    default '',
+  `module`          varchar(64)     NOT NULL    default '',
+  `link`            text,
+  `icon`            text,
+  `order`           smallint(5)     unsigned    NOT NULL default '0',
+
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `name` (`module`, `name`)
 );
 
 #Token
@@ -121,34 +177,6 @@ CREATE TABLE `{token}` (
 
   PRIMARY KEY (`id`),
   UNIQUE KEY `uid` (`uid`)
-);
-
-#Quick link
-CREATE TABLE `{quick_link}` (
-  `id`          int(10)              unsigned NOT NULL auto_increment,
-  `module`      varchar(64)          NOT NULL default '',
-  `title`       varchar(255)         NOT NULL default '',
-  `name`        varchar(255)         NOT NULL default '',
-  `link`        varchar(255)         NOT NULL default '',
-  `order`       int(10)              NOT NULL default '0',
-  `visible`     tinyint(1)           NOT NULL default '0',
-
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `module_name` (`module`, `name`)
-);
-
-#Activity
-CREATE TABLE `{activity}` (
-  `id`         int(10)               unsigned NOT NULL auto_increment,
-  `module`     varchar(64)           NOT NULL default '',
-  `title`      varchar(255)          NOT NULL default '',
-  `name`       varchar(255)          NOT NULL default '',
-  `call_back`  varchar(255)          NOT NULL default '',
-  `order`      int(10)               NOT NULL default '0',
-  `visible`    tinyint(1)            NOT NULL default '0',
-
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `module_name` (`module`, `name`)
 );
 
 #Privacy control
@@ -191,45 +219,4 @@ CREATE TABLE `{staff}` (
 
   PRIMARY KEY  (`id`),
   UNIQUE KEY `uid` (`uid`)
-);
-
-# user-profile-field config
-CREATE TABLE `{profile_field}` (
-  `id`              int(10)         unsigned     NOT NULL     auto_increment,
-  `name`            varchar(64)     NOT NULL     default '',
-  `title`           varchar(255)    NOT NULL     default '',
-  `value`           text,
-  `element`         text,
-  `filter`          text,
-  `display`         tinyint(1)      unsigned NOT NULL default '1',
-  `search`          tinyint(1)      unsigned NOT NULL default '1',
-
-  PRIMARY KEY (`id`)
-);
-
-# user-account-field config
-CREATE TABLE `{account_field}` (
-  `id`              int(10)         unsigned     NOT NULL     auto_increment,
-  `name`            varchar(64)     NOT NULL     default '',
-  `title`           varchar(255)    NOT NULL     default '',
-  `value`           text,
-  `element`         text,
-  `filter`          text,
-  `display`         tinyint(1)      unsigned NOT NULL default '1',
-  `search`          tinyint(1)      unsigned NOT NULL default '1',
-
-  PRIMARY KEY (`id`)
-);
-
-# user-component_field config
-CREATE TABLE `{component_field}` (
-  `id`              int(10)        unsigned NOT NULL auto_increment,
-  `name`            varchar(64)    NOT NULL default '',
-  `title`           varchar(255)   NOT NULL default '',
-  `columns`         text,
-  `model`           varchar(64)    NOT NULL default '',
-  `display`         tinyint(1)     unsigned NOT NULL default '1',
-  `search`          tinyint(1)     unsigned NOT NULL default '1',
-
-  PRIMARY KEY (`id`)
 );
