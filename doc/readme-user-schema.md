@@ -1,3 +1,9 @@
+
+## User schema setup
+
+### User model schema
+
+```
 # Pi Engine schema
 # http://pialog.org
 # Author: Taiwen Jiang <taiwenjiang@tsinghua.org.cn>
@@ -235,3 +241,5 @@ CREATE TABLE `{role}` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `user` (`section`, `uid`)
 );
+
+```

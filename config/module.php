@@ -1,71 +1,42 @@
 <?php
 /**
- * User module module config
+ * Pi Engine (http://pialog.org)
  *
- * You may not change or alter any portion of this comment or credits
- * of supporting developers from this source code or any supporting source code
- * which is considered copyrighted (c) material of the original comment or credit authors.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *
- * @copyright       Copyright (c) http://www.eefocus.com
- * @license         http://www.xoopsengine.org/license New BSD License
- * @author          Liu Chuang <liuchuang@eefocus.com>
- * @since           1.0
- * @package         Module\User
+ * @link            http://code.pialog.org for the Pi Engine source repository
+ * @copyright       Copyright (c) Pi Engine http://pialog.org
+ * @license         http://pialog.org/license.txt New BSD License
  */
 
 return array(
     // Module meta
-    'meta'         => array(
-        'title'         => __('User'),
-        'description'   => __('General module for user system.'),
-        'version'       => '1.0.1-beta.1',
+    'meta'  => array(
+        // Module title, required
+        'title'         => 'User',
+        // Description, for admin, optional
+        'description'   => 'User profile and services.',
+        // Version number, required
+        'version'       => '1.0.0',
+        // Distribution license, required
         'license'       => 'New BSD',
-        'logo'          => 'image/logo.png',
-        'readme'        => 'README.md',
-        'clonable'      => false,
     ),
     // Author information
-    'author'        => array(
-        'name'          => 'Liu Chuang',
-        'email'         => 'liuchuang@eefocus.com',
-        'website'       => 'http://www.github.com/pi-engine/pi',
-        'credits'       => 'Pi Engine Team.'
+    'author'    => array(
+        // Author full name, required
+        'name'      => 'Taiwen Jiang',
+        // Email address, optional
+        'email'     => 'taiwenjiang@tsinghua.org.cn',
     ),
-    // Module dependency: list of module directory names, optional
-    'dependency'    => array(
-    ),
+
     // Maintenance actions
     'maintenance'   => array(
-        'resource'      => array(
-            'database'      => array(
-                'sqlfile'      => 'sql/mysql.sql',
-                'schema'       => array(
-                    'account'         => 'table',
-                    'profile'         => 'table',
-                    'field'           => 'table',
-                    'custom'          => 'table',
-                    'education'       => 'table',
-                    'profile_group'   => 'table',
-                    'profile_display' => 'table',
-                    'user_log'        => 'table',
-                    'timeline_type'   => 'table',
-                    'timeline'        => 'table',
-                    'quicklink'       => 'table',
-                    'activity'        => 'table',
-                    'token'           => 'table',
-                    'privacy'         => 'table',
-                    'privacy_field'   => 'table',
-                    'role'            => 'table',
-                    'staff'           => 'table',
-                ),
+        // resource
+        'resource' => array(
+            // Database meta
+            'database'  => array(
+                // SQL schema/data file
+                'sqlfile'   => 'sql/mysql.sql',
             ),
-           'navigation'    => 'navigation.php',
-//            'block'         => 'block.php',
-           'config'        => 'config.php',
-            //'route'         => 'route.php',
+            'user'  => 'user.php',
         ),
     ),
 );
