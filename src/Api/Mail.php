@@ -21,32 +21,40 @@ class Mail extends AbstractApi
 {
     protected $module = 'user';
 
-    public function setData($uid, $name, $content, $module = null)
+    /**
+     * Send mail
+     *
+     * @param $to
+     * @param $subject
+     * @param $body
+     * @param $type
+     * @return mixed
+     */
+    public function send($to, $subject, $body, $type)
     {
-        $module = $module ? $module : 'user';
+        $options = $this->getSmtpOptions();
+        $message = Pi::service('mail')->message($subject, $body, $type);
+        $message->addTo($to);
 
-        $model = Pi::model('data', $this->module);
-        $where = array(
-            'uid'  => $uid,
-            'name' => $name,
-        );
-
-        $seletct = $model->select()->where($where);
-        $row = $model->selectWith($seletct)->current();
-
-        if (!$row->id) {
-            // Insert a new data
-            $row = $model->createRow(array(
-                'uid' => $uid,
-                'module' => $module,
-
-            ));
-        }
-
+        $transport = Pi::service('mail')->loadTransport('smtp', $options);
+        return $transport->send($message);
     }
 
+    /**
+     * Get smtp config params
+     *
+     * @return mixed
+     */
     protected function getSmtpOptions()
     {
+        $path = sprintf(
+            '%s/extra/%s/config/smtp.php',
+            Pi::path('usr'),
+            $this->getModule()
+        );
 
+        $smtpOptions = include $path;
+
+        return $smtpOptions;
     }
 }
