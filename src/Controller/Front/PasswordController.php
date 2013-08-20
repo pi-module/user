@@ -274,4 +274,17 @@ class PasswordController extends ActionController
 
         return array($subject, $body, $type);
     }
+
+    public function testAction()
+    {
+        $to = '840692951@qq.com';
+        list($subject, $body, $type) = $this->setMailParams(
+            'dasdasdasd',
+            'dsadasd'
+        );
+
+        Pi::api('user', 'mail')->send($to, $subject, $body, $type);
+
+        $this->view()->setTemplate(false);
+    }
 }

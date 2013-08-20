@@ -31,6 +31,7 @@ CREATE TABLE `{account}` (
   UNIQUE KEY `identity` (`identity`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `name` (`name`),
+
   KEY `status` (`active`)
 );
 
@@ -68,7 +69,7 @@ CREATE TABLE `{compound}` (
   `uid`             int(10)         unsigned    NOT NULL,
   `compound`        varchar(64)     NOT NULL,
                     # Compound name
-  `set`             varchar(64)     default NULL,
+  `set`             smallint(5)     unsigned    NOT NULL default '0',
                     # Field set key
   `field`           varchar(64)     NOT NULL,
                     # Compound field name
@@ -220,7 +221,7 @@ CREATE TABLE `{data}` (
   `content`         text,
 
   PRIMARY KEY  (`id`),
-  UNIQUE KEY `user_content` (`uid`, `module`, `type`)
+  UNIQUE KEY `user_content` (`uid`, `module`, `name`)
 );
 
 # ------------------------------------------------------

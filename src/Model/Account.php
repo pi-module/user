@@ -7,23 +7,32 @@
  * @license         http://pialog.org/license.txt New BSD License
  */
 
-namespace Module\User\Model\Compound;
+namespace Module\User\Model;
 
+use Pi;
 use Pi\Application\Model\Model as BasicModel;
 
 /**
- * User compound field model
+ * User account model
  *
  * @author Taiwen Jiang <taiwenjiang@tsinghua.org.cn>
  */
-class Field extends BasicModel
+class Account extends BasicModel
 {
     /**
-     * Columns to be encoded
+     * Row gateway class
      *
-     * @var array
+     * @var string
      */
-    protected $encodeColumns = array(
-        'edit'  => true,
-    );
+    protected $rowClass = 'Module\User\Model\RowGateway\Account';
+
+    /**
+     * Get identity column
+     *
+     * @return string
+     */
+    public function getIdentityColumn()
+    {
+        return 'identity';
+    }
 }

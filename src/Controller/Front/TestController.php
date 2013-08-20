@@ -7,23 +7,25 @@
  * @license         http://pialog.org/license.txt New BSD License
  */
 
-namespace Module\User\Model\Compound;
+namespace Module\User\Controller\Front;
 
-use Pi\Application\Model\Model as BasicModel;
+use Pi;
+use Pi\Mvc\Controller\ActionController;
 
 /**
- * User compound field model
+ * Test cases controller
  *
  * @author Taiwen Jiang <taiwenjiang@tsinghua.org.cn>
  */
-class Field extends BasicModel
+class TestController extends ActionController
 {
     /**
-     * Columns to be encoded
+     * Default action if none provided
      *
-     * @var array
+     * @return string
      */
-    protected $encodeColumns = array(
-        'edit'  => true,
-    );
+    public function indexAction()
+    {
+        $this->view()->setTemplate(false);
+    }
 }

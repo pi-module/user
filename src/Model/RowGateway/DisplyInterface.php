@@ -7,23 +7,22 @@
  * @license         http://pialog.org/license.txt New BSD License
  */
 
-namespace Module\User\Model\Compound;
+namespace Module\User\Model\RowGateway;
 
-use Pi\Application\Model\Model as BasicModel;
+use Pi;
 
 /**
- * User compound field model
+ * User profile row gateway display interface
  *
  * @author Taiwen Jiang <taiwenjiang@tsinghua.org.cn>
  */
-class Field extends BasicModel
+interface DisplayInterface
 {
     /**
-     * Columns to be encoded
+     * Get value of a column or all columns for display
      *
-     * @var array
+     * @param string $col
+     * @return string|mixed[]
      */
-    protected $encodeColumns = array(
-        'edit'  => true,
-    );
+    public function display($col = null);
 }

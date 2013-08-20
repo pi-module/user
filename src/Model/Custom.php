@@ -7,23 +7,21 @@
  * @license         http://pialog.org/license.txt New BSD License
  */
 
-namespace Module\User\Model\Compound;
+namespace Module\User\Model;
 
 use Pi\Application\Model\Model as BasicModel;
 
 /**
- * User compound field model
+ * User custom profile model
  *
  * @author Taiwen Jiang <taiwenjiang@tsinghua.org.cn>
  */
-class Field extends BasicModel
+class Custom extends BasicModel
 {
     /**
-     * Columns to be encoded
+     * Row gateway class
      *
-     * @var array
+     * @var string
      */
-    protected $encodeColumns = array(
-        'edit'  => true,
-    );
+    protected $rowClass = 'Module\User\Model\RowGateway\Custom';
 }
