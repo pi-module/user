@@ -16,7 +16,7 @@ class ProfileController extends ActionController
      */
     public function indexAction()
     {
-        $uid = $this->params();
+        $uid = $this->params('id');
         $isLogin = Pi::service('user')->hasIdentity();
 
         if (!$uid && !$isLogin) {
@@ -34,30 +34,48 @@ class ProfileController extends ActionController
         $select = $model->select();
         $select->columns('name', 'title', 'order');
         $select->order('order ASC');
-        $rowset = $model->selectWith($select);
-        foreach ($rowset as $row) {
-            $group[$row->name] = array(
-                'title'  => $row->title,
-                'fields' => array(),
+        $groups = $model->selectWith($select);
+        foreach ($groups as $group) {
+            $data[$group->name] = array(
+                'name'   => $group->name,
+                'title'  => $group->title,
             );
+
+            $compound = $group->compound;
+            $model = $this->getModel('field_display');
+            $select = $model->select()
+                ->where(array('group' => $group->name));
+            $select->order('order ASC');
+            $fields = $model->selectWith($select);
+
+            foreach ($fields as $field) {
+                $data[$group->name]['fields'][$field->name] = array(
+                    'name' => $field->field,
+                    'order' => $field->order,
+                    'value' => Pi::api('user', 'user')->get($field->name, $uid),
+                );
+
+                // Profile group
+                if (!$compound) {
+                    $profileFields = Pi::registry('profile', 'user')->read();
+                    if (isset($profileFields[$field->field])) {
+                        $title = $profileFields[$field->field]['title'];
+                    }
+                    $data[$group->name]['fields'][$field->name]['title'] = $title;
+                } else {
+                    $compoundFields = Pi::registry('compound', 'user')
+                        ->read($compound);
+                    if (isset($compoundFields[$field->field])) {
+                        $title = $data[$group->name]['fields'][$field->name]['title'];
+                    }
+                    $data[$group->name]['fields'][$field->name]['title'] = $title;
+                }
+            }
         }
 
-        // Get display field
-        foreach (array_keys($group) as $groupName) {
-            $model  = $this->getModel('field_display');
-            $select = $model->select()->where(array('group' => $groupName));
-            $rowset = $model->selectWith($select);
-            //$fields =
-        }
-
-        //$rowset =
-
-
-
-
-
-
-
+        $this->view()->assign(array(
+            'data' => $data,
+        ));
     }
 
     /**
@@ -87,6 +105,7 @@ class ProfileController extends ActionController
             $isOwner = true;
         }
 
+        // Test display (uid = 1)
         // Get user information
 
         $user['name'] = Pi::api('user')
@@ -148,15 +167,37 @@ class ProfileController extends ActionController
 
     public function testAction()
     {
-        //$result = Pi::api('user', 'user')->getMeta();
-        // $result = Pi::registry('profile', 'user')->read();
-        //$result = Pi::api('user', 'user')->canonizeMeta(array('work', 'tool', 'signature'));
-        //$result = Pi::model('account', 'user');
-        //$result = $this->getModel('account');
-        $result = Pi::api('user', 'user')->getMeta();
-        //$result = Pi::registry('profile', 'user')->read('', 'search');
-        d($result);
-
+        //$result = Pi::api('user', 'user')->get('gender', 1);
+        //vd($result);
+        //$fields = Pi::registry('profile', 'user')->read(,);
+        //$fields = Pi::registry('profile', 'user')->read();
+        //vd($fields);
+        //$fields = Pi::registry('compound', 'user')->read('work');
+        $fields = Pi::registry('profile', 'user')->read();
+        if (isset($fields['email'])) {
+            vd($fields['email']);
+        }
+        //vd($fields);
         $this->view()->setTemplate(false);
+    }
+
+    /**
+     * Edit profile according to group
+     */
+    public function editAction()
+    {
+        $group = $this->params('group', '');
+        if (!$group) {
+            return;
+        }
+
+        $isGroup = $this->getModel('display_group')->find($group);
+        if (!$isGroup) {
+            return;
+        }
+
+        $fieldsModel = $this->getModel('field_display');
+        $select = $fieldsModel->select()->where(array('group' => $group));
+        $select->order('order ASC');
     }
 }

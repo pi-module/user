@@ -10,15 +10,19 @@
 namespace Module\User\Model\RowGateway;
 
 use Pi;
-use Pi\Db\RowGateway\RowGateway;
 
 /**
- * User profile row gateway
+ * User profile row gateway display interface
  *
  * @author Taiwen Jiang <taiwenjiang@tsinghua.org.cn>
  */
-class Profile extends AbstractFieldRowGateway
+interface DisplayInterface
 {
-    /** @var string Model type */
-    protected static $type = 'profile';
+    /**
+     * Get value of a column or all columns for display
+     *
+     * @param string $col
+     * @return string|mixed[]
+     */
+    public function display($col = null);
 }
