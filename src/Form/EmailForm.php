@@ -1,6 +1,6 @@
 <?php
 /**
- * Register form
+ * Email form
  *
  * You may not change or alter any portion of this comment or credits
  * of supporting developers from this source code or any supporting source code
@@ -23,30 +23,46 @@ namespace Module\User\Form;
 use Pi;
 use Pi\Form\Form as BaseForm;
 
-class RegisterForm extends BaseForm
+class EmailForm extends BaseForm
 {
-    protected $fields;
-    protected $name;
-
-    public function __construct($name, $field)
-    {
-        $this->fields = $field;
-        $this->name   = $name;
-        parent::__construct($this->name);
-    }
     public function init()
     {
-        foreach ($this->fields as $field) {
-            $this->add($field);
-        }
-
         $this->add(array(
-            'name'       => 'submit',
-            'type'       => 'submit',
+            'name'       => 'email-new',
+            'options'    => array(
+                'label' => __('New email'),
+            ),
             'attributes' => array(
-                'value' => __('Submit'),
+                'type' => 'text',
             ),
         ));
 
+        $this->add(array(
+            'name'          => 'credential',
+            'options'       => array(
+                'label' => __('Current password'),
+            ),
+            'attributes'    => array(
+                'type'  => 'password',
+            )
+        ));
+
+        $this->add(array(
+            'name'  => 'identity',
+            'type'  => 'hidden',
+        ));
+
+        $this->add(array(
+            'name'  => 'security',
+            'type'  => 'csrf',
+        ));
+
+        $this->add(array(
+            'name'          => 'submit',
+            'type'          => 'submit',
+            'attributes'    => array(
+                'value' => __('Submit'),
+            )
+        ));
     }
 }

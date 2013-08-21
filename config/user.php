@@ -18,12 +18,14 @@ return array(
     'field'     => array(
 
         // Account fields
-        'identity'    => array(
-            'type'  => 'account',
-            'name'  => 'identity',
-            'title' => __('Identity'),
+
+        // Account: identity
+        'identity'      => array(
+            'type'      => 'account',
+            'name'      => 'identity',
+            'title'     => __('Identity'),
             // Edit element specs
-            'edit'  => array(
+            'edit'      => array(
                 'validators'    => array(
                     array(
                         'name'      => 'StringLength',
@@ -46,29 +48,34 @@ return array(
             // Is editable by admin, default as true
             'is_edit'   => false,
         ),
+        // Account: password
         'credential'    => array(
-            'type'  => 'account',
-            'name'  => 'credential',
-            'title' => __('Credential'),
+            'type'      => 'account',
+            'name'      => 'credential',
+            'title'     => __('Credential'),
             'edit'      => array(
                 'element'       => 'password',
                 'validators'    => array(
                     array(
-                        'name'      => 'StringLength',
+                        'name'      => 'Module\User\Validator\Password',
+                        /*
                         'options'   => array(
                             'encoding'  => 'UTF-8',
-                            'min'       => 6,
-                            'max'       => 25,
+                            'min'       => $config['password_min'],
+                            'max'       => $config['password_max'],
                         ),
+                        */
                     ),
                 ),
             ),
         ),
-        'email'    => array(
-            'type'  => 'account',
-            'name'  => 'email',
-            'title' => __('Email'),
-            'edit'  => array(
+        // Account: email
+        'email'     => array(
+            'type'      => 'account',
+            'name'      => 'email',
+            'title'     => __('Email'),
+            'edit'      => array(
+                'element'       => 'email',
                 'validators'    => array(
                     array(
                         'name'      => 'EmailAddress',
@@ -90,12 +97,13 @@ return array(
                 ),
             ),
         ),
-        'name'    => array(
-            'type'  => 'account',
-            'name'  => 'name',
-            'title' => __('Display name'),
+        // Account: display name
+        'name'      => array(
+            'type'      => 'account',
+            'name'      => 'name',
+            'title'     => __('Display name'),
             // Edit element specs
-            'edit'  => array(
+            'edit'      => array(
                 'validators'    => array(
                     array(
                         'name'      => 'Module\User\Validator\Name',
@@ -112,20 +120,86 @@ return array(
                 ),
             ),
         ),
+        // Account: Collective status
+        'active'    => array(
+            'type'      => 'account',
+            'name'      => 'active',
+            'title'     => __('Active'),
+            'edit'      => 'text',
+            'filter'    => 'Module\User\Filter\YesNo',
+
+            'is_edit'       => false,
+            'is_display'    => false,
+        ),
+        // Account: Register time
+        'time_created'  => array(
+            'type'      => 'account',
+            'name'      => 'time_created',
+            'title'     => __('Register time'),
+            'edit'      => 'text',
+            'filter'    => 'Module\User\Filter\DateTimeFormatter',
+
+            'is_edit'       => false,
+            'is_display'    => false,
+        ),
+        // Account: Activation time
+        'time_activated'    => array(
+            'type'      => 'account',
+            'name'      => 'time_activated',
+            'title'     => __('Activation time'),
+            'edit'      => 'text',
+            'filter'    => 'Module\User\Filter\DateTimeFormatter',
+
+            'is_edit'       => false,
+            'is_display'    => false,
+        ),
+        // Account: Disabled time
+        'time_disabled' => array(
+            'type'      => 'account',
+            'name'      => 'time_disabled',
+            'title'     => __('Disabled time'),
+            'edit'      => 'text',
+            'filter'    => 'Module\User\Filter\DateTimeFormatter',
+
+            'is_edit'       => false,
+            'is_display'    => false,
+            'is_search'     => false,
+        ),
+        // Account: Deleted time
+        'time_deleted'  => array(
+            'type'      => 'account',
+            'name'      => 'time_deleted',
+            'title'     => __('Deleted time'),
+            'edit'      => 'text',
+            'filter'    => 'Module\User\Filter\DateTimeFormatter',
+
+            'is_edit'       => false,
+            'is_display'    => false,
+            'is_search'     => false,
+        ),
 
         // Profile fields
+
+        // Profile: Full name
         'fullname'  => array(
             'type'  => 'profile',
             'name'  => 'fullname',
             'title' => __('Full name'),
         ),
-
+        // Profile: gender
+        'gender'    => array(
+            'type'  => 'profile',
+            'name'  => 'gender',
+            'title' => __('Gender'),
+            'edit'  => 'Module\User\Form\Element\Gender',
+        ),
+        // Profile: birth date
         'birthdate'  => array(
             'type'  => 'profile',
             'name'  => 'birthdate',
             'title' => __('Birth date'),
             'edit'  => array(
-                'element'       => 'Module\User\Form\Element\Birthdate',
+                'element'       => 'DateTimeSelect',
                 'filters'       => array(
                     array(
                         'name'  => 'Module\User\Filter\Birthdate',
@@ -138,19 +212,19 @@ return array(
                 ),
             ),
         ),
-
+        // Profile: location
         'location'  => array(
             'type'  => 'profile',
             'name'  => 'location',
             'title' => __('Location'),
         ),
-
+        // Profile: signature
         'signature'  => array(
             'type'  => 'profile',
             'name'  => 'signature',
             'title' => __('Signature'),
         ),
-
+        // Profile: bio
         'bio'  => array(
             'type'  => 'profile',
             'name'  => 'bio',
@@ -159,13 +233,17 @@ return array(
         ),
 
         // Custom fields
+
+        // Custom: language
         'language'  => array(
+            'name'  => 'language',
             'title' => __('Language'),
-            'edit'  => 'Locale',
+            'edit'  => 'locale',
         ),
 
         // Compound fields
-        // Social networking tools
+
+        // Compound: Social networking tools
         'tool'      => array(
             'name'  => 'tool',
             'title' => __('Social tools'),
@@ -180,7 +258,7 @@ return array(
             ),
         ),
 
-        // Communication address
+        // Compound: Communication address
         'address'   => array(
             'name'  => 'address',
             'title' => __('Address'),
@@ -201,13 +279,13 @@ return array(
                 'street'   => array(
                     'title' => __('Street'),
                 ),
-                'office'   => array(
-                    'title' => __('Office'),
+                'room'      => array(
+                    'title' => __('Room'),
                 ),
             ),
         ),
 
-        // Education experiences
+        // Compound: Education experiences
         'education'  => array(
             'name'  => 'education',
             'title' => __('Education'),
@@ -234,7 +312,7 @@ return array(
             ),
         ),
 
-        // Profession experiences
+        // Compound: Profession experiences
         'work'      => array(
             'name'  => 'work',
             'title' => __('Work'),
@@ -264,16 +342,21 @@ return array(
 
     ),
 
+    // Timeline logs from modules
     'timeline'  => array(
         'action'    => array(
             'title' => __('User action'),
         ),
     ),
+
+    // Activity logs from other modules
     'activity'  => array(
         'member'    => array(
 
         ),
     ),
+
+    // Quicklinks
     'quicklink' => array(
 
     ),

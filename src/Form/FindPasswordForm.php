@@ -1,6 +1,6 @@
 <?php
 /**
- * Register form
+ * Find password form
  *
  * You may not change or alter any portion of this comment or credits
  * of supporting developers from this source code or any supporting source code
@@ -23,30 +23,41 @@ namespace Module\User\Form;
 use Pi;
 use Pi\Form\Form as BaseForm;
 
-class RegisterForm extends BaseForm
+class FindPasswordForm extends BaseForm
 {
-    protected $fields;
-    protected $name;
-
-    public function __construct($name, $field)
-    {
-        $this->fields = $field;
-        $this->name   = $name;
-        parent::__construct($this->name);
-    }
     public function init()
     {
-        foreach ($this->fields as $field) {
-            $this->add($field);
-        }
-
         $this->add(array(
-            'name'       => 'submit',
-            'type'       => 'submit',
+            'name'       => 'email',
+            'options'    => array(
+                'label' => __('Email'),
+            ),
             'attributes' => array(
-                'value' => __('Submit'),
+                'type' => 'text',
             ),
         ));
 
+        $this->add(array(
+            'name'    => 'captcha',
+            'options' => array(
+                'label'     => __('Please type the word'),
+                'separator' => '<br />',
+            ),
+            'type'    => 'captcha',
+        ));
+
+        $this->add(array(
+            'name' => 'security',
+            'type' => 'csrf',
+        ));
+
+        $this->add(array(
+            'name'       => 'submit',
+            'attributes' => array(
+                'type'  => 'submit',
+                'value' => __('Find password'),
+                'class' => 'btn',
+            ),
+        ));
     }
 }

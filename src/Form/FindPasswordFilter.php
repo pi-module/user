@@ -1,6 +1,6 @@
 <?php
 /**
- * Register form input filter
+ * Find password  form input filter
  *
  * You may not change or alter any portion of this comment or credits
  * of supporting developers from this source code or any supporting source code
@@ -23,14 +23,28 @@ namespace Module\User\Form;
 use Pi;
 use Zend\InputFilter\InputFilter;
 
-class RegisterFilter extends InputFilter
+class FindPasswordFilter extends InputFilter
 {
-    public function __construct($filters)
+    public function __construct()
     {
-        foreach ($filters as $filter) {
-            if ($filter) {
-                $this->add($filter);
-            }
-        }
+        $this->add(array(
+            'name' => 'email',
+            'required' => true,
+            'filters' => array(
+                array(
+                    'name' => 'StringTrim',
+                ),
+            ),
+            'validators' => array(
+                array(
+                    'name' => 'EmailAddress',
+                    'options' => array(
+                        'useMxCheck'     => false,
+                        'useDeepMxCheck' => false,
+                        'useDomainCheck' => false,
+                    ),
+                ),
+            ),
+        ));
     }
 }
