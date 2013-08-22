@@ -11,6 +11,7 @@ namespace Module\User\Model\RowGateway;
 
 use Pi;
 use Pi\Db\RowGateway\RowGateway;
+use Pi\Filter\FilterChain;
 
 /**
  * User profile abstract row gateway
@@ -18,16 +19,22 @@ use Pi\Db\RowGateway\RowGateway;
  * @author Taiwen Jiang <taiwenjiang@tsinghua.org.cn>
  */
 abstract class AbstractFieldRowGateway extends RowGateway implements
-    DisplayInterface
+    FilterInterface
 {
     /** @var string Model type */
-    protected static $type = '';
+    protected $type = '';
 
     /**
      * Profile meta data
      * @var array
      */
-    protected static $meta;
+    protected $meta;
+
+    /**
+     * Filter handler
+     * @var FilterChain
+     */
+    protected static $filterChain;
 
     /**
      * Get meta data of a key or all set
@@ -37,60 +44,82 @@ abstract class AbstractFieldRowGateway extends RowGateway implements
      */
     protected function getMeta($key = null)
     {
-        if (!isset(static::$meta)) {
-            static::$meta = Pi::registry('profile', 'user')->read(
-                static::$type
+        if (!isset($this->meta)) {
+            $this->meta = Pi::registry('profile', 'user')->read(
+                $this->type
             );
         }
         if ($key) {
-            $result = isset(static::$meta[$key]) ? static::$meta[$key] : null;
+            $result = isset($this->meta[$key]) ? $this->meta[$key] : null;
         } else {
-            $result = static::$meta;
+            $result = $this->meta;
         }
 
         return $result;
     }
 
     /**
-     * Get value of a column for display
+     * Filter value for display
      *
-     * @param string $col
-     * @return string|mixed[]
+     * @param string|string[] $col
+     * @return mixed|mixed[]
      */
-    public function display($col = null)
+    public function filter($col = null)
     {
         $result = array();
-        if (!isset($col)) {
-            foreach (array_keys(static::getMeta()) as $key) {
-                $ret = $this->transformMeta($key);
-                if (!is_null($ret)) {
-                    $result[$key] = $ret;
-                }
-            }
+        if (!$col) {
+            $cols = array_keys($this->getMeta());
         } else {
-            $result = $this->transformMeta($col);
+            $cols = (array) $col;
+        }
+
+        foreach ($cols as $field) {
+            $ret = $this->filterField($field);
+            if (null !== $ret) {
+                $result[$field] = $ret;
+            }
+        }
+
+        if (is_scalar($col)) {
+            $result = isset($result[$col]) ? $result[$col] : null;
         }
 
         return $result;
     }
 
     /**
-     * Transform a meat
+     * Filter a field value
      *
-     * @param string $key
+     * @param string $field
      * @return mixed
      */
-    protected function transformMeta($key)
+    protected function filterField($field)
     {
-        $value = $this->{$key};
-        if (!is_null($value)) {
-            $meta = static::getMeta($key);
+        $value = $this[$field];
+        if (null !== $value) {
+            $meta = $this->getMeta($field);
             if (isset($meta['filter'])) {
-                $filter = new $meta['filter'];
-                $value = $filter($value);
+                $value = $this->getFilter($meta['filter'])->filter($value);
             }
         }
 
         return $value;
+    }
+
+    /**
+     * Load filter handler
+     *
+     * @param $filter
+     *
+     * @return \Zend\Filter\FilterInterface
+     */
+    protected function getFilter($filter)
+    {
+        if (!static::$filterChain) {
+            static::$filterChain = new FilterChain;
+        }
+        $filterHandler = static::$filterChain->plugin($filter);
+
+        return $filterHandler;
     }
 }
