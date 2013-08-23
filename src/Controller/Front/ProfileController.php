@@ -1,8 +1,27 @@
 <?php
+/**
+ * User module profile controller
+ *
+ * You may not change or alter any portion of this comment or credits
+ * of supporting developers from this source code or any supporting source code
+ * which is considered copyrighted (c) material of the original comment or credit authors.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * @copyright       Copyright (c) Copyright (c) Pi Engine http://www.xoopsengine.org
+ * @license         http://www.xoopsengine.org/license New BSD License
+ * @author          Liu Chuang <liuchuang@eefocus.com>
+ * @since           1.0
+ * @package         Module\User
+ */
+
 namespace Module\User\Controller\Front;
 
 use Pi;
 use Pi\Mvc\Controller\ActionController;
+use Module\User\Form\ProfileEditForm;
+use Module\User\Form\ProfileEditFilter;
 
 class ProfileController extends ActionController
 {
@@ -37,8 +56,9 @@ class ProfileController extends ActionController
         $groups = $model->selectWith($select);
         foreach ($groups as $group) {
             $data[$group->name] = array(
-                'name'   => $group->name,
-                'title'  => $group->title,
+                'name'     => $group->name,
+                'compound' => $group->compound,
+                'title'    => $group->title,
             );
 
             $compound = $group->compound;
@@ -165,39 +185,122 @@ class ProfileController extends ActionController
         return $paginator;
     }
 
-    public function testAction()
+    public function editProfileAction()
     {
-        //$result = Pi::api('user', 'user')->get('gender', 1);
-        //vd($result);
-        //$fields = Pi::registry('profile', 'user')->read(,);
-        //$fields = Pi::registry('profile', 'user')->read();
-        //vd($fields);
-        //$fields = Pi::registry('compound', 'user')->read('work');
-        $fields = Pi::registry('profile', 'user')->read();
-        if (isset($fields['email'])) {
-            vd($fields['email']);
+        $uid = Pi::service('user')->getIdentity();
+        $groupName = $this->params('group');
+
+        if (!$uid || $groupName) {
+            return $this->jumpTo404();
         }
-        //vd($fields);
-        $this->view()->setTemplate(false);
+
+        list($fields, $filters) = $this->getGroupElements($groupName);
+
+        // Add other elements
+        $fields[] = array(
+            'name'  => 'uid',
+            'type'  => 'hidden',
+            'attributes' => array(
+                'value' => $uid,
+            ),
+        );
+        $fields[] = array(
+            'name'       => 'submit',
+            'type'       => 'submit',
+            'attributes' => array(
+                'value' => 'submit'
+            ),
+        );
+
+        $form = new ProfileEditForm('profile', $fields);
+        $form->setAttributes(array(
+            'action' => $this->url('',
+                array(
+                    'controller' => 'profile',
+                    'action' => 'editProfile'
+                )),
+        ));
+
+        if ($this->request->isPost()) {
+            // Get profile filter
+            $post = $this->request->getPost();
+            $form->setData($post);
+            $form->setInputFilter(new ProfileEditFilter($filters));
+            if ($form->isValid()) {
+                $data = $form->getData();
+                // Update user
+                $status = Pi::api('user', 'user')->updateUser($data, $uid);
+
+                // Redirect to profile page
+                if ($status) {
+                    return $this->redirect(
+                        '',
+                        array('controller' => 'profile', 'action' => 'index')
+                    );
+                }
+            }
+        } else {
+            // Get profile data
+            $model = $this->getModel('field_display');
+            $select = $model->select()->where(array('group' => $groupName));
+            $result = $model->selectWith($select);
+            foreach ($result as $row) {
+                $data[] = $row->field;
+            }
+            $profileData = Pi::api('user', 'user')->get($data, $uid);
+            $form->setData($profileData);
+        }
     }
 
     /**
-     * Edit profile according to group
+     * Edit compound
+     *
      */
-    public function editAction()
+    public function editCompoundAction()
     {
-        $group = $this->params('group', '');
-        if (!$group) {
-            return;
+        $compound = $this->params('group', '');
+        $uid = Pi::service('user')->getIdentity();
+        $compoundMeta = Pi::api('user', 'user')->getMeta('compound');
+        if (!in_array($compound, $compoundMeta) || !$uid) {
+            return $this->jumpTo404();
         }
+    }
 
-        $isGroup = $this->getModel('display_group')->find($group);
-        if (!$isGroup) {
-            return;
-        }
+    public function testAction()
+    {
+        $this->view()->setTemplate(false);
+    }
 
+    protected function getGroupElements($groupNmae, $compound = '')
+    {
         $fieldsModel = $this->getModel('field_display');
-        $select = $fieldsModel->select()->where(array('group' => $group));
+        $select = $fieldsModel->select()->where(array('group' => $groupNmae));
         $select->order('order ASC');
+        $rowset = $fieldsModel->selectWith($select);
+
+        $elements = array();
+        $filters  = array();
+        // Profile
+        if (!$compound) {
+            foreach ($rowset as $row) {
+                $element = Pi::api('user', 'form')->getElement($row->field);
+                $filter = Pi::api('user', 'form')->getFilter($row->field);
+                $elements[] = $element;
+                $filters[]  = $filter;
+            }
+
+            return array($elements, $filters);
+        } else {
+            // Compound
+            foreach ($rowset as $row) {
+                $element = Pi::api('user', 'form')
+                    ->getCompoundElement($compound, $row->field);
+                $filter = Pi::api('user', 'form')
+                    ->getCompoundFilter($compound, $row->field);
+                $elements[] = $element;
+                $filters[]  = $filter;
+            }
+            return array($elements, $filters);
+        }
     }
 }

@@ -2,7 +2,7 @@
 
 <?php foreach ($data as $row) { ?>
 <div class="pi-legend"><?php echo $this->escape($row['title']); ?></div>
-<a href="<?php echo $this->url('', array('action' => 'edit', 'group' => $row['name'])); ?>"><?php _e('Edit');?></a>
+<a href="<?php echo $this->url('', array('action' => $row['compound'] ? 'edit.compound' : 'edit.profile', 'group' => $row['name'])); ?>"><?php _e('Edit');?></a>
 <div>
     <dl class="dl-horizontal">
     <?php foreach ($row['fields'] as $field) { ?>
