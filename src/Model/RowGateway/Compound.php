@@ -13,20 +13,25 @@ use Pi;
 //use Pi\Db\RowGateway\RowGateway;
 
 /**
- * User custom profile row gateway
+ * User compound profile row gateway
  *
  * @author Taiwen Jiang <taiwenjiang@tsinghua.org.cn>
  */
-class Custom extends AbstractFieldRowGateway
+class Compound extends AbstractFieldRowGateway
 {
     /** @var string Model type */
-    protected $type = 'custom';
+    protected $type = 'compound';
 
     /**
      * {@inheritDoc}
      */
     protected function getMeta($key = null)
     {
+        if (!isset($this->meta)) {
+            $this->meta = Pi::registry('compound', 'user')->read(
+                $this['compound']
+            );
+        }
         $key = $this['field'];
         return parent::getMeta($key);
     }

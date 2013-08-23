@@ -1,20 +1,5 @@
 <?php
-/**
- * User module register controller
- *
- * You may not change or alter any portion of this comment or credits
- * of supporting developers from this source code or any supporting source code
- * which is considered copyrighted (c) material of the original comment or credit authors.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *
- * @copyright       Copyright (c) Copyright (c) Pi Engine http://www.xoopsengine.org
- * @license         http://www.xoopsengine.org/license New BSD License
- * @author          Liu Chuang <liuchuang@eefocus.com>
- * @since           1.0
- * @package         Module\User
- */
+
 
 namespace Module\User\Controller\Front;
 
@@ -54,24 +39,18 @@ class RegisterController extends ActionController
             $form->setData($post);
             if ($form->isValid()) {
                 $values     = $form->getData();
-                $salt       = Pi::api('user', 'password')->createSalt();
-                $credential = Pi::api('user', 'password')
-                    ->transformCredential($values['credential'], $salt);
 
                 $data = array(
                     'identity'   => $values['identity'],
                     'name'       => $values['name'],
                     'email'      => $values['email'],
-                    'salt'       => $values['salt'],
                     'credential' => $values['credential'],
                 );
 
                 $uid = Pi::api('user', 'user')->addUser($data);
-                // Set role
-                $role = Acl::MEMBER;
-                // To to
-                // Insert role
 
+                // Set user role
+                $this->createRole($uid);
                 // Set user data
                 $result = Pi::api('user', 'userdata')
                     ->setData($uid, 'register', 'user');
@@ -235,6 +214,34 @@ class RegisterController extends ActionController
         $this->view()->setTemplate('register-prefect-information');
     }
 
+    public function testAction()
+    {
+        $this->view()->setTemplate(false);
+        return $this->jump(
+            array('action' => 'index'),
+            'just test'
+        );
+    }
+
+    /**
+     * Create role for register user
+     *
+     * @param $uid
+     * @param string $role
+     * @param string $section
+     * @return mixed
+     */
+    protected function createRole($uid, $role = Acl::MEMBER, $section = 'front')
+    {
+        $roleModel = $this->getModel('role');
+        $row = $roleModel->createRow(array(
+            'uid'     => $uid,
+            'role'    => $role,
+            'section' => $section,
+        ));
+        return $row->save();
+    }
+
 
     /**
      * Get register form
@@ -312,15 +319,5 @@ class RegisterController extends ActionController
         $type = $data['format'];
 
         return array($subject, $body, $type);
-    }
-
-    public function testAction()
-    {
-        return $this->jumpTo404('dasdasd');
-//        //$this->view()->setTemplate(false);
-//        //return
-//        //return
-//           // return $this->jumpToException('error occur');
-//        $this->jum
     }
 }
