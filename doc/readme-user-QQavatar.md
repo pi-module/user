@@ -6,12 +6,13 @@
 
 
 
-Q头像的官方使用文档：http://wiki.open.qq.com/wiki/%E5%89%8D%E7%AB%AF%E9%A1%B5%E9%9D%A2%E8%A7%84%E8%8C%83
+###QQ头像的官方使用文档：###
+http://wiki.open.qq.com/wiki/%E5%89%8D%E7%AB%AF%E9%A1%B5%E9%9D%A2%E8%A7%84%E8%8C%83
 
 目前头像只能通过 OpenAPI（例如 v3/user/get_info ，v3/user/get_multi_info）的方式来获取到用户头像的 URL。
 需要注意的是，在应用上线前，接口返回的头像 URL 有防盗链。上线后，才会开放防盗链的限制。 
 
-###空间和朋友平台头像有不同的尺寸：###
+####空间和朋友平台头像有不同的尺寸：####
 - 空间头像尺寸有：100px，50px，30px 3 种规格。
 - 朋友头像尺寸有：100px，60px，30px 3 种规格。
 
